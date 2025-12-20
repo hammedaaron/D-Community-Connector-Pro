@@ -64,6 +64,16 @@
       100% { transform: translateX(100%) rotate(45deg); }
     }
   </style>
+  <script>
+    // Essential shim for browser environments where process.env is missing
+    window.process = {
+      env: {
+        API_KEY: "AIzaSyATnmP8W_QgmmV-i0dDqWY8wau0OhU87JQ",
+        SUPABASE_URL: "https://cuqpcruevsulqiphmhnt.supabase.co",
+        SUPABASE_ANON_KEY: "sb_publishable_HA5e8RstVOzcW0CfpAB8sg_ZKF4OcFN"
+      }
+    };
+  </script>
 <script type="importmap">
 {
   "imports": {
@@ -78,5 +88,6 @@
 </head>
 <body class="light">
   <div id="root"></div>
+  <script type="module" src="index.tsx"></script>
 </body>
 </html>
