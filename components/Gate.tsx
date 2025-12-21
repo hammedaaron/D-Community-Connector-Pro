@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
 import { getParties, validateAdminPassword, validateDevPassword, registerParty, loginUser, registerUser, checkUserExists, findPartyByName, ensureDevUser } from '../db';
 import LandingPage from './LandingPage';
+import AdminDocs from './AdminDocs';
 
 interface GateProps {
   onAuth: (user: User) => void;
@@ -15,6 +16,8 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [dbParties, setDbParties] = useState<{name: string}[]>([]);
+  const [showDocs, setShowDocs] = useState(false);
+  const [showAdminTips, setShowAdminTips] = useState(false);
 
   useEffect(() => {
     const fetchParties = async () => {
@@ -55,7 +58,6 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
     const cleanUsername = username.trim();
     const cleanPassword = password.trim();
 
-    // DEV CHECK: Sync with DB to avoid Foreign Key violations
     if (cleanUsername === 'Dev' && validateDevPassword(cleanPassword)) {
       try {
         const devUser = await ensureDevUser();
@@ -113,6 +115,8 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
 
   return (
     <div className="fixed inset-0 z-[200] bg-slate-950 overflow-y-auto custom-scrollbar">
+      {showDocs && <AdminDocs onClose={() => setShowDocs(false)} />}
+      
       <div className="fixed inset-0 opacity-40 pointer-events-none overflow-hidden">
         <div className="absolute top-0 -left-1/4 w-1/2 h-full bg-indigo-600/20 blur-[120px] rounded-full animate-pulse" />
         <div className="absolute bottom-0 -right-1/4 w-1/2 h-full bg-violet-600/20 blur-[120px] rounded-full animate-pulse delay-700" />
@@ -128,8 +132,8 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
           <div className="w-full max-w-xl px-4 animate-in fade-in zoom-in-95 duration-500">
             {(mode === 'admin-signup' || mode === 'login') && (
               <form onSubmit={mode === 'admin-signup' ? handleAdminSignup : handleLogin} className="bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-[2.5rem] sm:rounded-[3rem] shadow-2xl space-y-6">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex flex-col">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex flex-col flex-1">
                     <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                       {mode === 'admin-signup' ? 'Setup Your Hub' : 'Identity Membership'}
                     </h2>
@@ -137,7 +141,40 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
                       {mode === 'admin-signup' ? 'Create a unique name for your community.' : 'Enter the name of the community you want to join.'}
                     </p>
                   </div>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowDocs(true)}
+                    className="flex flex-col items-center gap-1 group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <span className="text-[8px] font-black uppercase text-slate-500 tracking-tighter">Admin Guide</span>
+                  </button>
                 </div>
+
+                {mode === 'admin-signup' && (
+                  <div className="animate-in slide-in-from-top-4 duration-500">
+                    <button 
+                      type="button"
+                      onClick={() => setShowAdminTips(!showAdminTips)}
+                      className="w-full p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 flex items-center justify-between text-indigo-400"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="animate-bounce">💡</div>
+                        <span className="text-[10px] font-black uppercase tracking-widest">How to launch as admin?</span>
+                      </div>
+                      <svg className={`w-4 h-4 transition-transform ${showAdminTips ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    {showAdminTips && (
+                      <div className="mt-2 p-5 bg-slate-950/50 rounded-2xl border border-slate-800 text-[11px] font-medium text-slate-400 leading-relaxed space-y-2 animate-in fade-in zoom-in-95">
+                        <p>1. Set your <strong className="text-white">Username</strong> to exactly <code className="text-indigo-400 font-bold">Admin</code>.</p>
+                        <p>2. Set a <strong className="text-white">Password</strong> following the <code className="text-indigo-400 font-bold">Hamstar[XX][Y]</code> rule.</p>
+                        <p>3. This creates a secure, verifiable community key.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 <div className="space-y-4">
                   <div className="space-y-1">

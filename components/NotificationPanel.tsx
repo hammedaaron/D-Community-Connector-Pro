@@ -48,45 +48,35 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
   const isDark = theme === 'dark';
 
   const handleNotificationClick = async (notif: AggregatedNotification) => {
-    // RULE UPDATE: Clicking no longer marks as read automatically.
-    // Read status is only updated when follow-back is complete (in App.tsx toggleFollow).
+    // RULE ENFORCEMENT: Clicking no longer marks as read automatically.
+    // Read status is only updated when follow-back is complete.
     
-    // Find the card to trace (usually the latest one)
     const targetCard = cards.find(c => c.id === notif.relatedCardId);
     
     if (targetCard) {
       if (onClose) onClose();
-
-      // Switch folder
       setSelectedFolderId(targetCard.folderId);
       
-      // Trace Logic: Scroll and Highlight
       let attempts = 0;
       const findAndHighlight = () => {
         const el = document.getElementById(`card-${targetCard.id}`);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          
           const highlightClasses = [
             'ring-8', 'ring-emerald-500/50', 'ring-offset-4', 
             'dark:ring-offset-slate-950', 'scale-105', 'z-50', 
             'transition-all', 'duration-700', 'shadow-[0_0_50px_rgba(16,185,129,0.4)]'
           ];
-          
           el.classList.add(...highlightClasses);
-          
-          setTimeout(() => {
-            el.classList.remove(...highlightClasses);
-          }, 3500);
+          setTimeout(() => el.classList.remove(...highlightClasses), 3500);
         } else if (attempts < 20) {
           attempts++;
           setTimeout(findAndHighlight, 100);
         }
       };
-
       setTimeout(findAndHighlight, 150);
-    } else {
-      if (onClose) onClose();
+    } else if (onClose) {
+      onClose();
     }
   };
 
@@ -119,7 +109,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
                 onClick={() => handleNotificationClick(notif)}
                 className={`w-full p-6 cursor-pointer transition-all flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
                   notif.read 
-                    ? 'opacity-60 grayscale-[0.3]' 
+                    ? 'opacity-60' 
                     : (isDark ? 'bg-indigo-500/10' : 'bg-indigo-50/40')
                 }`}
               >
@@ -159,17 +149,6 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
           </div>
         )}
       </div>
-      
-      {unreadCount > 0 && (
-        <div className={`p-4 text-center border-t ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-          <button 
-            onClick={() => aggregatedNotifications.forEach(n => !n.read && n.allIds.forEach(id => markNotificationRead(id)))}
-            className="text-[10px] font-black text-slate-400 hover:text-indigo-500 uppercase tracking-widest transition-colors"
-          >
-            Clear all notifications
-          </button>
-        </div>
-      )}
     </div>
   );
 };

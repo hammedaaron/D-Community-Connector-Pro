@@ -11,7 +11,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onCreate, onJoin }) => {
     <div className="relative w-full max-w-6xl mx-auto px-4 pt-4 lg:pt-6 pb-20 space-y-8 lg:space-y-12 overflow-x-hidden">
       
       {/* BRAND HEADER - Minimum margins for tight proximity */}
-      <header className="flex justify-center mb-2">
+      <header className="flex justify-center mb-2 animate-in fade-in slide-in-from-top-4 duration-700">
         <div className="group flex items-center gap-3 py-2 px-5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md transition-all hover:border-indigo-500/50">
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/20 group-hover:rotate-12 transition-transform">
             D
