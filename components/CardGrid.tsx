@@ -57,14 +57,14 @@ const CardGrid: React.FC<CardGridProps> = ({ folderId, onEditCard }) => {
 
     return parts.map((line, i) => {
       if (line.trim().startsWith('## ')) {
-        return <h2 key={i} className="text-[#00ff9d] text-2xl font-black mb-4 mt-6 first:mt-0 tracking-tighter uppercase">{line.replace('## ', '').trim()}</h2>;
+        return <h2 key={i} className="text-[#00ff9d] text-xl font-black mb-3 mt-4 first:mt-0 tracking-tighter uppercase">{line.replace('## ', '').trim()}</h2>;
       }
       const segments = line.split(boldRegex);
       const formatted = segments.map((segment, index) => {
         if (index % 2 === 1) return <b key={index} className="text-[#2563eb] dark:text-[#60a5fa] font-black">{segment}</b>;
         return segment;
       });
-      return <p key={i} className="text-sm leading-relaxed mb-2 opacity-90 font-medium">{formatted}</p>;
+      return <p key={i} className="text-sm leading-relaxed mb-1 opacity-90 font-medium">{formatted}</p>;
     });
   };
 
@@ -79,43 +79,41 @@ const CardGrid: React.FC<CardGridProps> = ({ folderId, onEditCard }) => {
     );
   }
 
-  // Trigger Canvas mode only if there are instruction boxes or cards actually have manual positions set
-  const hasWorkflow = folderInstructions.length > 0 || folderCards.some(c => c.x !== undefined && c.y !== undefined);
-
-  if (hasWorkflow) {
-    return (
-      <div className="relative w-full min-h-[1800px]">
-        {folderInstructions.map(box => (
-          <div 
-            key={box.id}
-            className={`absolute p-10 rounded-[3rem] border-2 shadow-2xl z-10 ${isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white/80 border-slate-100 backdrop-blur-md'}`}
-            style={{ left: box.x, top: box.y, width: `${box.width}px` }}
-          >
-            {renderInstructionContent(box.content)}
-          </div>
-        ))}
-
-        {filteredCards.map(card => {
-          const isPositioned = card.x !== undefined && card.y !== undefined;
-          return (
-            <div 
-              key={card.id}
-              className={`${isPositioned ? 'absolute z-20 transition-all' : 'inline-block mr-8 mb-8'}`}
-              style={isPositioned ? { left: card.x, top: card.y, width: '280px' } : { width: '280px' }}
-            >
-              <UserCard card={card} onEdit={() => onEditCard(card)} />
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 lg:gap-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {filteredCards.map(card => (
-        <UserCard key={card.id} card={card} onEdit={() => onEditCard(card)} />
-      ))}
+    <div className="space-y-12">
+      {/* Pinned Instructions Section */}
+      {folderInstructions.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          {folderInstructions.map(box => (
+            <div 
+              key={box.id}
+              className={`p-8 rounded-[2.5rem] border shadow-lg relative overflow-hidden transition-all hover:shadow-xl ${isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-100'}`}
+            >
+              <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
+              <div className="relative z-10">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 block">Pinned Information</span>
+                {renderInstructionContent(box.content)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Profile Grid - Always Side-by-Side */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 lg:gap-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {filteredCards.length > 0 ? (
+          filteredCards.map(card => (
+            <UserCard key={card.id} card={card} onEdit={() => onEditCard(card)} />
+          ))
+        ) : (
+          <div className="col-span-full py-20 text-center">
+             <div className="inline-flex p-6 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+             </div>
+             <p className="text-slate-500 font-bold">No profiles established in this community yet.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
