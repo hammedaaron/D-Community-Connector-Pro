@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
-import { getParties, validateAdminPassword, validateDevPassword, registerParty, loginUser, registerUser, checkUserExists, findPartyByName, SYSTEM_PARTY_ID } from '../db';
+import { getParties, validateAdminPassword, validateDevPassword, registerParty, loginUser, registerUser, checkUserExists, findPartyByName, ensureDevUser } from '../db';
 import LandingPage from './LandingPage';
 
 interface GateProps {
@@ -55,16 +55,16 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
     const cleanUsername = username.trim();
     const cleanPassword = password.trim();
 
-    // DEV CHECK
+    // DEV CHECK: Sync with DB to avoid Foreign Key violations
     if (cleanUsername === 'Dev' && validateDevPassword(cleanPassword)) {
-      const devUser: User = {
-        id: 'dev-master-root',
-        name: 'Dev',
-        role: UserRole.DEV,
-        partyId: SYSTEM_PARTY_ID
-      };
-      onAuth(devUser);
-      return;
+      try {
+        const devUser = await ensureDevUser();
+        onAuth(devUser);
+        return;
+      } catch (err) {
+        setError("Failed to initialize System Architect node.");
+        return;
+      }
     }
 
     const cleanPartyName = partyName.trim();

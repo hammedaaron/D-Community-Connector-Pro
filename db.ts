@@ -18,6 +18,37 @@ export const getSession = (): User | null => {
   return data ? JSON.parse(data) : null;
 };
 
+// --- System & Dev Initialization ---
+
+/**
+ * Ensures the Dev user and the System Party exist in the DB
+ * to satisfy foreign key constraints for cards and folders.
+ */
+export const ensureDevUser = async () => {
+  // 1. Ensure SYSTEM party exists
+  const { data: party } = await supabase.from('parties').select('id').eq('id', SYSTEM_PARTY_ID).single();
+  if (!party) {
+    await supabase.from('parties').insert([{ id: SYSTEM_PARTY_ID, name: 'System Core' }]);
+  }
+
+  // 2. Ensure Dev user exists
+  const devId = 'dev-master-root';
+  const { data: user } = await supabase.from('users').select('id').eq('id', devId).single();
+  
+  const devData: User = {
+    id: devId,
+    name: 'Dev',
+    role: UserRole.DEV,
+    partyId: SYSTEM_PARTY_ID
+  };
+
+  if (!user) {
+    await supabase.from('users').insert([devData]);
+  }
+  
+  return devData;
+};
+
 // --- Party Operations ---
 
 export const getParties = async () => {
