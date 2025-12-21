@@ -28,7 +28,8 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
   const isDark = theme === 'dark';
 
   const userHasProfile = cards.some(c => c.userId === currentUser?.id && c.folderId === selectedFolderId);
-  const isCreationDisabled = userHasProfile && currentUser?.role !== UserRole.DEV;
+  const canAddMultiple = currentUser?.role === UserRole.DEV || currentUser?.role === UserRole.ADMIN;
+  const isCreationDisabled = userHasProfile && !canAddMultiple;
 
   useEffect(() => {
     const scrollContainer = scrollRef.current;
@@ -79,7 +80,17 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               {unreadNotifications > 0 && <span className="absolute -top-1 -right-1 flex h-5 w-5 pointer-events-none"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-5 w-5 bg-red-500 border-2 border-white dark:border-slate-900 text-[9px] font-black items-center justify-center text-white">{unreadNotifications}</span></span>}
             </button>
-            <button onClick={isCreationDisabled ? undefined : onOpenCreateProfile} disabled={isCreationDisabled} className={`${isCreationDisabled ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-300 dark:border-slate-700' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20'} px-5 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2`} title={isCreationDisabled ? "Limit Reached" : "Join community"}><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d={isCreationDisabled ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} /></svg><span className="hidden sm:inline uppercase tracking-widest">{isCreationDisabled ? 'Joined' : 'Join'}</span></button>
+            <button 
+              onClick={onOpenCreateProfile} 
+              disabled={isCreationDisabled || !selectedFolderId} 
+              className={`${isCreationDisabled || !selectedFolderId ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-300 dark:border-slate-700' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20'} px-5 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2`} 
+              title={!selectedFolderId ? "Select a folder" : isCreationDisabled ? "Limit Reached" : "Join community"}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d={isCreationDisabled ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} /></svg>
+              <span className="hidden sm:inline uppercase tracking-widest">
+                {!selectedFolderId ? 'Select Folder' : isCreationDisabled ? 'Joined' : 'Join'}
+              </span>
+            </button>
           </div>
         </header>
         <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10 pb-32">
@@ -90,7 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
       <div className={`fixed inset-0 z-[100] transition-opacity duration-300 ${isNotifOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsNotifOpen(false)}><div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" /><div className={`absolute top-0 right-0 h-full w-full max-w-sm bg-white dark:bg-slate-900 shadow-2xl transition-transform duration-500 ease-out ${isNotifOpen ? 'translate-x-0' : 'translate-x-full'}`} onClick={(e) => e.stopPropagation()}><NotificationPanel onClose={() => setIsNotifOpen(false)} /></div></div>
       <nav className={`lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-4 flex gap-10 items-center rounded-3xl z-40 transition-all shadow-2xl border ${isDark ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-100'} backdrop-blur-xl`}>
         <button onClick={() => setActiveTab('folders')} className={`p-1 ${activeTab === 'folders' ? 'text-indigo-500' : 'text-slate-400'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg></button>
-        <button onClick={isCreationDisabled ? undefined : onOpenCreateProfile} className={`p-4 -mt-10 rounded-2xl text-white shadow-xl transition-all ${isCreationDisabled ? 'bg-slate-400 opacity-50' : 'bg-indigo-600 shadow-indigo-500/40'} ${activeTab === 'community' && !isCreationDisabled ? 'scale-110' : ''}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d={isCreationDisabled ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} /></svg></button>
+        <button onClick={onOpenCreateProfile} className={`p-4 -mt-10 rounded-2xl text-white shadow-xl transition-all ${isCreationDisabled || !selectedFolderId ? 'bg-slate-400 opacity-50' : 'bg-indigo-600 shadow-indigo-500/40'} ${activeTab === 'community' && !isCreationDisabled && selectedFolderId ? 'scale-110' : ''}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d={isCreationDisabled ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} /></svg></button>
         <button onClick={() => setIsNotifOpen(true)} className={`p-1 relative ${isNotifOpen ? 'text-indigo-500' : 'text-slate-400'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>{unreadNotifications > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />}</button>
       </nav>
     </div>

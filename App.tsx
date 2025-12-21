@@ -206,7 +206,13 @@ const App: React.FC = () => {
 
   return (
     <AppContext.Provider value={contextValue}>
-      <Layout onOpenCreateProfile={() => setIsCreateModalOpen(true)}>
+      <Layout onOpenCreateProfile={() => {
+        if (!selectedFolderId) {
+          showToast("Please select a community folder first.", "error");
+          return;
+        }
+        setIsCreateModalOpen(true);
+      }}>
         {selectedFolderId === 'authority-table' && currentUser.role === UserRole.DEV ? (
           <AuthorityTable />
         ) : (isWorkflowMode && currentUser.role === UserRole.DEV) ? (
@@ -225,9 +231,11 @@ const App: React.FC = () => {
           onSubmit={async (name, link) => {
             if (!currentUser || !selectedFolderId) return;
             
-            // Bypass logic for DEV: they can add multiple
+            // Bypass logic for DEV/ADMIN: they can add multiple
             const alreadyHasProfile = cards.some(c => c.userId === currentUser.id && c.folderId === selectedFolderId);
-            if (alreadyHasProfile && currentUser.role !== UserRole.DEV) {
+            const isPrivileged = currentUser.role === UserRole.DEV || currentUser.role === UserRole.ADMIN;
+            
+            if (alreadyHasProfile && !isPrivileged) {
               showToast("Profile exists already.", "error");
               return;
             }

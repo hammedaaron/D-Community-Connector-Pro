@@ -14,9 +14,10 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
   const [link, setLink] = useState('');
   const isDark = theme === 'dark';
 
-  // DEV bypass: If user is Dev, they are never "enforced" or blocked from adding more
+  // Bypass: If user is Dev or Admin, they are never blocked from adding more
   const alreadyHasProfile = cards.some(c => c.userId === currentUser?.id && c.folderId === selectedFolderId);
-  const isEnforced = alreadyHasProfile && currentUser?.role !== UserRole.DEV;
+  const isPrivileged = currentUser?.role === UserRole.DEV || currentUser?.role === UserRole.ADMIN;
+  const isEnforced = alreadyHasProfile && !isPrivileged;
 
   const handlePost = () => {
     if (isEnforced) return;
@@ -35,7 +36,7 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
       <div className={`w-full max-w-lg overflow-hidden transform transition-all rounded-t-[3rem] sm:rounded-[3rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-full duration-500 ${isDark ? 'bg-slate-900 border border-slate-800' : 'bg-white border border-slate-100'}`}>
         <div className="px-10 py-8 flex items-center justify-between">
           <h3 className={`font-black text-2xl tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {isEnforced ? 'Profile Exists' : 'Add Profile'}
+            {isEnforced ? 'Profile Exists' : isPrivileged ? 'Establish Node' : 'Add Profile'}
           </h3>
           <button onClick={onClose} className={`p-3 rounded-2xl transition-all ${isDark ? 'hover:bg-slate-800 text-slate-500' : 'hover:bg-slate-100 text-slate-400'}`}>
             <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -87,7 +88,7 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
               <p className="text-xs font-bold leading-relaxed">
-                {currentUser?.role === UserRole.DEV ? 'Architect Mode: Adding universal node.' : 'Your profile will be pinned in this community for others to discover.'}
+                {isPrivileged ? 'Authority Mode: Establishing universal/local node.' : 'Your profile will be pinned in this community for others to discover.'}
               </p>
             </div>
           )}
@@ -105,7 +106,7 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
                 disabled={!name.trim() || !link.trim()}
                 className="flex-1 py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-2xl shadow-indigo-500/30 transition-all text-sm uppercase tracking-widest disabled:opacity-30 disabled:shadow-none hover:scale-[1.02] active:scale-95"
               >
-                Add Profile
+                {isPrivileged ? 'Establish Profile' : 'Add Profile'}
               </button>
             )}
           </div>
