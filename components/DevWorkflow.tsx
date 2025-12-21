@@ -44,7 +44,6 @@ const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
   const addInstructionBox = async () => {
     if (!activeParty || !folderId) return;
     
-    // Check if the current folder is universal
     const currentFolder = folders.find(f => f.id === folderId);
     const targetPartyId = currentFolder?.partyId === SYSTEM_PARTY_ID ? SYSTEM_PARTY_ID : activeParty.id;
 
@@ -74,7 +73,19 @@ const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
   };
 
   const renderContent = (text: any) => {
-    const contentStr = typeof text === 'string' ? text : String(text || '');
+    let contentStr = "";
+    if (typeof text === 'string') {
+      contentStr = text;
+    } else if (text?.message) {
+      contentStr = text.message;
+    } else if (text) {
+      try {
+        contentStr = JSON.stringify(text);
+      } catch {
+        contentStr = String(text);
+      }
+    }
+
     const parts = contentStr.split('\n');
     const boldRegex = /\*\*(.*?)\*\*/g;
 

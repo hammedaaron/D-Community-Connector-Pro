@@ -39,7 +39,19 @@ const CardGrid: React.FC<CardGridProps> = ({ folderId, onEditCard }) => {
   }, [folderCards, searchQuery, currentUser?.id]);
 
   const renderInstructionContent = (text: any) => {
-    const contentStr = typeof text === 'string' ? text : String(text || '');
+    let contentStr = "";
+    if (typeof text === 'string') {
+      contentStr = text;
+    } else if (text?.message) {
+      contentStr = text.message;
+    } else if (text) {
+      try {
+        contentStr = JSON.stringify(text);
+      } catch {
+        contentStr = String(text);
+      }
+    }
+
     const parts = contentStr.split('\n');
     const boldRegex = /\*\*(.*?)\*\*/g;
 

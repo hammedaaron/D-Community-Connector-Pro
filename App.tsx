@@ -75,8 +75,14 @@ const App: React.FC = () => {
       finalMsg = message;
     } else if (message?.message) {
       finalMsg = message.message;
+    } else if (message && typeof message === 'object') {
+      try {
+        finalMsg = JSON.stringify(message);
+      } catch {
+        finalMsg = String(message);
+      }
     } else if (message) {
-      finalMsg = JSON.stringify(message);
+      finalMsg = String(message);
     }
     setToast({ message: finalMsg, type });
     setTimeout(() => setToast(null), 4000);
@@ -146,7 +152,7 @@ const App: React.FC = () => {
         await addNotification({ recipientId: targetCard.userId, senderId: currentUser.id, senderName: currentUser.name, type: isFollowBack ? NotificationType.FOLLOW_BACK : NotificationType.FOLLOW, relatedCardId: senderCard?.id || '', partyId: activeParty.id });
       }
       syncData();
-    } catch (err) { showToast("Action failed.", "error"); }
+    } catch (err) { showToast(err, "error"); }
   }, [currentUser, activeParty, follows, cards, syncData, showToast]);
 
   const markNotificationRead = async (id: string) => {
@@ -219,15 +225,12 @@ const App: React.FC = () => {
           onSubmit={async (name, link) => {
             if (!currentUser || !selectedFolderId || !activeParty) return;
             
-            // DEV bypass for multiple profiles
             const alreadyHasProfile = cards.some(c => c.userId === currentUser.id && c.folderId === selectedFolderId);
             if (alreadyHasProfile && currentUser.role !== UserRole.DEV) {
               showToast("Profile exists already.", "error");
               return;
             }
 
-            // If Dev is creating a profile, we should probably allow them to specify if it's "System" or "Local"
-            // For now, we use activeParty.id. If they are in a SYSTEM folder, it remains SYSTEM.
             const folder = folders.find(f => f.id === selectedFolderId);
             const pId = folder?.partyId === SYSTEM_PARTY_ID ? SYSTEM_PARTY_ID : activeParty.id;
 
