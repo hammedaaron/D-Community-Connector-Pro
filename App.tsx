@@ -74,12 +74,12 @@ const App: React.FC = () => {
     if (typeof message === 'string') {
       finalMsg = message;
     } else if (message?.message) {
-      finalMsg = message.message;
+      finalMsg = String(message.message);
     } else if (message && typeof message === 'object') {
       try {
         finalMsg = JSON.stringify(message);
       } catch {
-        finalMsg = String(message);
+        finalMsg = "An error occurred";
       }
     } else if (message) {
       finalMsg = String(message);
@@ -223,8 +223,9 @@ const App: React.FC = () => {
         <CreateProfileModal 
           onClose={() => setIsCreateModalOpen(false)} 
           onSubmit={async (name, link) => {
-            if (!currentUser || !selectedFolderId || !activeParty) return;
+            if (!currentUser || !selectedFolderId) return;
             
+            // Bypass logic for DEV: they can add multiple
             const alreadyHasProfile = cards.some(c => c.userId === currentUser.id && c.folderId === selectedFolderId);
             if (alreadyHasProfile && currentUser.role !== UserRole.DEV) {
               showToast("Profile exists already.", "error");
@@ -232,21 +233,29 @@ const App: React.FC = () => {
             }
 
             const folder = folders.find(f => f.id === selectedFolderId);
-            const pId = folder?.partyId === SYSTEM_PARTY_ID ? SYSTEM_PARTY_ID : activeParty.id;
+            // Universal Logic: If folder is System/Universal, profile is Universal
+            const targetPartyId = folder?.partyId === SYSTEM_PARTY_ID ? SYSTEM_PARTY_ID : activeParty?.id || SYSTEM_PARTY_ID;
 
             const newCard: Card = { 
               id: Math.random().toString(36).substr(2, 9), 
               userId: currentUser.id, 
               folderId: selectedFolderId, 
-              partyId: pId, 
+              partyId: targetPartyId, 
               displayName: name, 
               externalLink: link, 
-              timestamp: Date.now() 
+              timestamp: Date.now(),
+              x: 100, 
+              y: 100
             };
-            await upsertCard(newCard);
-            syncData();
-            setIsCreateModalOpen(false);
-            showToast("Profile added!");
+            
+            try {
+              await upsertCard(newCard);
+              syncData();
+              setIsCreateModalOpen(false);
+              showToast("Profile added successfully!");
+            } catch (err: any) {
+              showToast(err, "error");
+            }
           }} 
         />
       )}

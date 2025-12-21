@@ -14,7 +14,7 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
   const [link, setLink] = useState('');
   const isDark = theme === 'dark';
 
-  // Enforcement check
+  // DEV bypass: If user is Dev, they are never "enforced" or blocked from adding more
   const alreadyHasProfile = cards.some(c => c.userId === currentUser?.id && c.folderId === selectedFolderId);
   const isEnforced = alreadyHasProfile && currentUser?.role !== UserRole.DEV;
 
@@ -22,7 +22,6 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
     if (isEnforced) return;
     if (!name.trim() || !link.trim()) return;
     
-    // Auto-fix URL to be absolute
     let cleanLink = link.trim();
     if (!cleanLink.startsWith('http://') && !cleanLink.startsWith('https://')) {
       cleanLink = `https://${cleanLink}`;
@@ -52,7 +51,7 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
               <div>
                 <h4 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Limit Reached</h4>
                 <p className="text-sm font-medium text-slate-500 mt-2">
-                  Each member is limited to one profile per community to ensure fairness and prevent spam. Please edit your existing card instead.
+                  Each member is limited to one profile per community to ensure fairness. Please edit your existing card instead.
                 </p>
               </div>
             </div>
@@ -88,7 +87,7 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
               <p className="text-xs font-bold leading-relaxed">
-                Your profile will be pinned in this community for others to discover and connect with you.
+                {currentUser?.role === UserRole.DEV ? 'Architect Mode: Adding universal node.' : 'Your profile will be pinned in this community for others to discover.'}
               </p>
             </div>
           )}
@@ -111,7 +110,6 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
             )}
           </div>
         </div>
-        <div className="h-8 sm:hidden bg-transparent"></div>
       </div>
     </div>
   );

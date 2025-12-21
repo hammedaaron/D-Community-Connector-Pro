@@ -2,11 +2,16 @@
 import React from 'react';
 
 interface ToastProps {
-  message: string;
+  message: any;
   type?: 'success' | 'error';
 }
 
 const Toast: React.FC<ToastProps> = ({ message, type = 'success' }) => {
+  // Robust conversion to string for rendering
+  const displayMessage = typeof message === 'string' 
+    ? message 
+    : message?.message || JSON.stringify(message) || "Notice";
+
   return (
     <div className="fixed bottom-24 sm:bottom-10 left-1/2 -translate-x-1/2 z-[300] animate-in slide-in-from-bottom-4 duration-300">
       <div className={`px-6 py-3 rounded-2xl shadow-2xl border flex items-center gap-3 backdrop-blur-xl ${
@@ -23,7 +28,7 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'success' }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )}
-        <span className="text-sm font-black uppercase tracking-widest">{message}</span>
+        <span className="text-sm font-black uppercase tracking-widest">{displayMessage}</span>
       </div>
     </div>
   );

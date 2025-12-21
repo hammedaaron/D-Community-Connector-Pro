@@ -124,7 +124,8 @@ export const deleteInstruction = async (id: string) => {
   if (error) throw error;
 };
 
-// --- Rest of original db.ts contents... ---
+// --- Auth Logic ---
+
 export const validateAdminPassword = (password: string) => {
   const regex = /^Hamstar([1-9]{2})([1-9])$/;
   const match = password.trim().match(regex);
