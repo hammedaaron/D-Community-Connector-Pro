@@ -22,6 +22,13 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
 
   const isMutual = isFollowed && followsMe;
 
+  // FIX: Identify if this card was created by the System Architect
+  // 'dev-master-root' is the hardcoded ID from db.ts
+  const isDevOwned = card.userId === 'dev-master-root';
+
+  // FIX: Permission logic - Admins cannot edit Dev cards
+  const canManage = isDev || isOwnCard || (isAdmin && !isDevOwned);
+
   // Ensure the link is absolute to prevent trailing deployment URLs
   const absoluteLink = useMemo(() => {
     const url = card.externalLink?.trim();
@@ -110,7 +117,7 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
             </div>
           </div>
           
-          {(isAdmin || isDev || isOwnCard) && (
+          {canManage && (
             <button 
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
               className={`p-1.5 rounded-xl transition-all ${isDark ? 'text-slate-400 hover:text-emerald-400 hover:bg-slate-800' : 'text-slate-400 hover:text-indigo-500 hover:bg-indigo-50'}`}

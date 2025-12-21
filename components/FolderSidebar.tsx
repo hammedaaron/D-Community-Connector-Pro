@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../App';
 import { UserRole, Folder } from '../types';
 import { addFolder as dbAddFolder, updateFolderName as dbUpdateFolderName, deleteFolder as dbDeleteFolder, SYSTEM_PARTY_ID } from '../db';
@@ -22,6 +22,21 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
 
   const isDark = theme === 'dark';
 
+  // FIX: Priority sorting - System folders first, then alphabetical
+  const sortedFolders = useMemo(() => {
+    return [...folders].sort((a, b) => {
+      const aIsSystem = a.partyId === SYSTEM_PARTY_ID;
+      const bIsSystem = b.partyId === SYSTEM_PARTY_ID;
+      
+      // System folders always go to the top
+      if (aIsSystem && !bIsSystem) return -1;
+      if (!aIsSystem && bIsSystem) return 1;
+      
+      // Otherwise sort alphabetically
+      return a.name.localeCompare(b.name);
+    });
+  }, [folders]);
+
   const handleSelect = (id: string) => {
     if (editingFolderId) return; 
     setSelectedFolderId(id);
@@ -31,7 +46,6 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
   const addFolder = async (name: string) => {
     if (!name.trim() || !activeParty) return;
     try {
-      // MASTER RULE: Dev folders are Universal (SYSTEM)
       const folderPartyId = isDev ? SYSTEM_PARTY_ID : activeParty.id;
       const newFolder: Folder = {
         id: Math.random().toString(36).substr(2, 9),
@@ -80,7 +94,6 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
     const folder = folders.find(f => f.id === id);
     if (!folder) return;
 
-    // MASTER RULE: Only Dev can delete universal communities
     if (folder.partyId === SYSTEM_PARTY_ID && !isDev) {
       showToast("Universal Communities can only be terminated by the System Architect.", "error");
       return;
@@ -137,7 +150,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
         </div>
         
         <nav className="space-y-1.5">
-          {folders.map(folder => (
+          {sortedFolders.map(folder => (
             <div key={folder.id} className="group flex items-center gap-1">
               {editingFolderId === folder.id ? (
                 <div className="flex-1 flex items-center gap-2 p-1.5 bg-indigo-50 dark:bg-slate-800 rounded-2xl border border-indigo-200 dark:border-slate-700">
