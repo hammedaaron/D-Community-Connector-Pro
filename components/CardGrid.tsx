@@ -56,13 +56,11 @@ const CardGrid: React.FC<CardGridProps> = ({ folderId, onEditCard }) => {
     const boldRegex = /\*\*(.*?)\*\*/g;
 
     return parts.map((line, i) => {
-      // MASTER STYLE: H2 is Mystic Green
       if (line.trim().startsWith('## ')) {
         return <h2 key={i} className="text-[#00ff9d] text-2xl font-black mb-4 mt-6 first:mt-0 tracking-tighter uppercase">{line.replace('## ', '').trim()}</h2>;
       }
       const segments = line.split(boldRegex);
       const formatted = segments.map((segment, index) => {
-        // MASTER STYLE: Bold is Mystic Blue
         if (index % 2 === 1) return <b key={index} className="text-[#2563eb] dark:text-[#60a5fa] font-black">{segment}</b>;
         return segment;
       });
@@ -81,7 +79,8 @@ const CardGrid: React.FC<CardGridProps> = ({ folderId, onEditCard }) => {
     );
   }
 
-  const hasWorkflow = folderCards.some(c => c.x !== undefined && c.y !== undefined) || folderInstructions.length > 0;
+  // Trigger Canvas mode only if there are instruction boxes or cards actually have manual positions set
+  const hasWorkflow = folderInstructions.length > 0 || folderCards.some(c => c.x !== undefined && c.y !== undefined);
 
   if (hasWorkflow) {
     return (

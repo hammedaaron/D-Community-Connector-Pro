@@ -231,7 +231,6 @@ const App: React.FC = () => {
           onSubmit={async (name, link) => {
             if (!currentUser || !selectedFolderId) return;
             
-            // Bypass logic for DEV/ADMIN: they can add multiple
             const alreadyHasProfile = cards.some(c => c.userId === currentUser.id && c.folderId === selectedFolderId);
             const isPrivileged = currentUser.role === UserRole.DEV || currentUser.role === UserRole.ADMIN;
             
@@ -241,9 +240,9 @@ const App: React.FC = () => {
             }
 
             const folder = folders.find(f => f.id === selectedFolderId);
-            // Universal Logic: If folder is System/Universal, profile is Universal
             const targetPartyId = folder?.partyId === SYSTEM_PARTY_ID ? SYSTEM_PARTY_ID : activeParty?.id || SYSTEM_PARTY_ID;
 
+            // FIX: Removed default x/y so cards flow in grid by default
             const newCard: Card = { 
               id: Math.random().toString(36).substr(2, 9), 
               userId: currentUser.id, 
@@ -251,9 +250,7 @@ const App: React.FC = () => {
               partyId: targetPartyId, 
               displayName: name, 
               externalLink: link, 
-              timestamp: Date.now(),
-              x: 100, 
-              y: 100
+              timestamp: Date.now()
             };
             
             try {
