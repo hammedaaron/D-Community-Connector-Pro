@@ -142,18 +142,41 @@ const App: React.FC = () => {
     const isAlreadyFollowed = follows.some(f => f.followerId === currentUser.id && f.targetCardId === cardId);
     const targetCard = cards.find(c => c.id === cardId);
     if (!targetCard) return;
+
     try {
       const newFollow: Follow = { id: Math.random().toString(36).substr(2, 9), followerId: currentUser.id, targetCardId: cardId, partyId: activeParty.id, timestamp: Date.now() };
       await upsertFollow(newFollow, !isAlreadyFollowed);
+      
       if (!isAlreadyFollowed && targetCard.userId !== currentUser.id) {
+        // Find existing unread follow notifications from this person to mark as read
+        const relatedNotifs = notifications.filter(n => 
+          n.recipientId === currentUser.id && 
+          n.senderId === targetCard.userId && 
+          n.type === NotificationType.FOLLOW &&
+          !n.read
+        );
+        
+        // RULE UPDATE: Notifications only wear off when the user follows back
+        for (const n of relatedNotifs) {
+          await markRead(n.id);
+        }
+
         const senderCard = cards.find(c => c.userId === currentUser.id && c.partyId === activeParty.id);
         const myCardIds = cards.filter(c => c.userId === currentUser.id).map(c => c.id);
         const isFollowBack = follows.some(f => f.followerId === targetCard.userId && myCardIds.includes(f.targetCardId));
-        await addNotification({ recipientId: targetCard.userId, senderId: currentUser.id, senderName: currentUser.name, type: isFollowBack ? NotificationType.FOLLOW_BACK : NotificationType.FOLLOW, relatedCardId: senderCard?.id || '', partyId: activeParty.id });
+        
+        await addNotification({ 
+          recipientId: targetCard.userId, 
+          senderId: currentUser.id, 
+          senderName: currentUser.name, 
+          type: isFollowBack ? NotificationType.FOLLOW_BACK : NotificationType.FOLLOW, 
+          relatedCardId: senderCard?.id || '', 
+          partyId: activeParty.id 
+        });
       }
       syncData();
     } catch (err) { showToast(err, "error"); }
-  }, [currentUser, activeParty, follows, cards, syncData, showToast]);
+  }, [currentUser, activeParty, follows, cards, notifications, syncData, showToast]);
 
   const markNotificationRead = async (id: string) => {
     await markRead(id);
@@ -231,18 +254,25 @@ const App: React.FC = () => {
           onSubmit={async (name, link) => {
             if (!currentUser || !selectedFolderId) return;
             
+            const folder = folders.find(f => f.id === selectedFolderId);
+            const isSystemFolder = folder?.partyId === SYSTEM_PARTY_ID;
+            const isDev = currentUser.role === UserRole.DEV;
+            
+            if (isSystemFolder && !isDev) {
+              showToast("Only System Architect can establish nodes here.", "error");
+              return;
+            }
+
             const alreadyHasProfile = cards.some(c => c.userId === currentUser.id && c.folderId === selectedFolderId);
-            const isPrivileged = currentUser.role === UserRole.DEV || currentUser.role === UserRole.ADMIN;
+            const isPrivileged = isDev || currentUser.role === UserRole.ADMIN;
             
             if (alreadyHasProfile && !isPrivileged) {
               showToast("Profile exists already.", "error");
               return;
             }
 
-            const folder = folders.find(f => f.id === selectedFolderId);
-            const targetPartyId = folder?.partyId === SYSTEM_PARTY_ID ? SYSTEM_PARTY_ID : activeParty?.id || SYSTEM_PARTY_ID;
+            const targetPartyId = isSystemFolder ? SYSTEM_PARTY_ID : activeParty?.id || SYSTEM_PARTY_ID;
 
-            // FIX: Removed default x/y so cards flow in grid by default
             const newCard: Card = { 
               id: Math.random().toString(36).substr(2, 9), 
               userId: currentUser.id, 

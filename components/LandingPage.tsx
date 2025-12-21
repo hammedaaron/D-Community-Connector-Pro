@@ -8,10 +8,10 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onCreate, onJoin }) => {
   return (
-    <div className="relative w-full max-w-6xl mx-auto px-4 py-8 lg:py-12 space-y-20 lg:space-y-32 overflow-x-hidden">
+    <div className="relative w-full max-w-6xl mx-auto px-4 pt-4 lg:pt-6 pb-20 space-y-8 lg:space-y-12 overflow-x-hidden">
       
-      {/* BRAND HEADER */}
-      <header className="flex justify-center mb-8 lg:mb-16">
+      {/* BRAND HEADER - Minimum margins for tight proximity */}
+      <header className="flex justify-center mb-2">
         <div className="group flex items-center gap-3 py-2 px-5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md transition-all hover:border-indigo-500/50">
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/20 group-hover:rotate-12 transition-transform">
             D
@@ -25,9 +25,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onCreate, onJoin }) => {
         </div>
       </header>
 
-      {/* SECTION 1: HERO */}
-      <section className="text-center space-y-6 lg:space-y-8 animate-in fade-in zoom-in-95 duration-1000">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-2 lg:mb-4">
+      {/* SECTION 1: HERO - Forced two-line headline and reduced gap */}
+      <section className="text-center space-y-4 lg:space-y-6 animate-in fade-in zoom-in-95 duration-1000">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
@@ -35,8 +35,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onCreate, onJoin }) => {
           Next-Gen Community Infrastructure
         </div>
         
-        <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black text-white tracking-tighter leading-[1.1] lg:leading-[0.9] lg:max-w-4xl mx-auto">
-          Scale Your Community <br/>
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tighter leading-[1.05] lg:leading-[1] lg:max-w-5xl mx-auto">
+          Scale Your Community <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-emerald-400">Without the Chaos.</span>
         </h1>
         
@@ -44,7 +44,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onCreate, onJoin }) => {
           The visual, smart way for high-growth communities to connect, follow, and grow — without the endless scrolling of messy chat streams.
         </p>
         
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 px-4 sm:px-0">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 px-4 sm:px-0">
           <button 
             onClick={onCreate}
             className="w-full sm:w-auto px-8 lg:px-10 py-4 lg:py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-2xl shadow-indigo-500/40 transition-all hover:scale-105 active:scale-95 uppercase tracking-widest text-xs lg:text-sm"
@@ -60,7 +60,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onCreate, onJoin }) => {
         </div>
 
         {/* Dashboard Preview Animation Mockup */}
-        <div className="relative mt-12 lg:mt-20 group px-2 lg:px-0">
+        <div className="relative mt-6 lg:mt-10 group px-2 lg:px-0">
           <div className="absolute inset-0 bg-indigo-500/20 blur-[60px] lg:blur-[100px] rounded-full group-hover:bg-indigo-500/30 transition-all"></div>
           <div className="relative glass-card border border-white/10 rounded-[2rem] lg:rounded-[3rem] p-4 lg:p-8 shadow-2xl overflow-hidden aspect-video max-w-5xl mx-auto">
             <div className="flex items-center gap-2 mb-4 lg:mb-6 border-b border-white/5 pb-4">
@@ -81,7 +81,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onCreate, onJoin }) => {
       </section>
 
       {/* SECTION 2: PAIN */}
-      <section className="space-y-12 lg:space-y-16 px-2">
+      <section className="space-y-10 lg:space-y-14 px-2">
         <div className="text-center space-y-4">
           <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tight">Communities are Broken.</h2>
           <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] lg:text-xs">The Scrolling Nightmare Ends Here</p>
@@ -159,41 +159,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onCreate, onJoin }) => {
         </div>
       </section>
 
-      {/* SECTION 5: COMPARISON */}
-      <section className="space-y-8 lg:space-y-12 px-2">
-        <div className="text-center">
-          <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight">Why CCP is Better</h2>
-        </div>
-        
-        <div className="overflow-x-auto custom-scrollbar rounded-[2rem] lg:rounded-[3rem] border border-slate-800 bg-slate-900/50">
-          <table className="w-full text-left min-w-[600px]">
-            <thead>
-              <tr className="border-b border-slate-800 bg-slate-900">
-                <th className="px-6 lg:px-8 py-4 lg:py-6 text-slate-500 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Feature</th>
-                <th className="px-6 lg:px-8 py-4 lg:py-6 text-slate-500 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Chat Apps</th>
-                <th className="px-6 lg:px-8 py-4 lg:py-6 text-indigo-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest bg-indigo-500/5">Connector Pro</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {[
-                { f: "Organization", chat: "Endless text streams", ccp: "Visual Member Cards" },
-                { f: "Discoverability", chat: "Links get lost", ccp: "Profile Directory" },
-                { f: "Follow Speed", chat: "Manual & Slow", ccp: "1-Click Direct Access" },
-                { f: "Fairness", chat: "Random visibility", ccp: "Equal Discoverability" },
-                { f: "Tracking", chat: "None (Chaos)", ccp: "Real-time Notifications" }
-              ].map((row, i) => (
-                <tr key={i} className="group hover:bg-white/5 transition-colors">
-                  <td className="px-6 lg:px-8 py-4 lg:py-6 text-xs lg:text-sm font-bold text-white whitespace-nowrap">{row.f}</td>
-                  <td className="px-6 lg:px-8 py-4 lg:py-6 text-xs lg:text-sm text-slate-500">{row.chat}</td>
-                  <td className="px-6 lg:px-8 py-4 lg:py-6 text-xs lg:text-sm font-black text-emerald-400 bg-indigo-500/5">{row.ccp}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* SECTION 6 & 7: URGENCY & FINAL CTA */}
+      {/* SECTION 6 & 7: FINAL CTA */}
       <section className="text-center space-y-10 lg:space-y-12 pb-12 lg:pb-20 px-4">
         <div className="space-y-4">
           <h2 className="text-4xl lg:text-7xl font-black text-white tracking-tighter leading-[1.1]">Ready to fix the chaos?</h2>

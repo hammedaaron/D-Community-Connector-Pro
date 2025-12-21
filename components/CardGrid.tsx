@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { useApp } from '../App';
 import UserCard from './UserCard';
 import { Card } from '../types';
+import { SYSTEM_PARTY_ID } from '../db';
 
 interface CardGridProps {
   folderId: string | null;
@@ -10,13 +11,21 @@ interface CardGridProps {
 }
 
 const CardGrid: React.FC<CardGridProps> = ({ folderId, onEditCard }) => {
-  const { cards, searchQuery, currentUser, instructions, theme } = useApp();
+  const { cards, searchQuery, currentUser, instructions, theme, folders } = useApp();
   const isDark = theme === 'dark';
 
   const folderCards = useMemo(() => {
     if (!folderId) return [];
-    return cards.filter(c => c.folderId === folderId);
-  }, [cards, folderId]);
+    const folder = folders.find(f => f.id === folderId);
+    const rawCards = cards.filter(c => c.folderId === folderId);
+
+    // FIX: If this is a Universal/System folder, strictly only show Dev-owned cards
+    if (folder?.partyId === SYSTEM_PARTY_ID) {
+      return rawCards.filter(c => c.userId === 'dev-master-root');
+    }
+    
+    return rawCards;
+  }, [cards, folderId, folders]);
 
   const folderInstructions = useMemo(() => {
     if (!folderId) return [];

@@ -48,26 +48,25 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
   const isDark = theme === 'dark';
 
   const handleNotificationClick = async (notif: AggregatedNotification) => {
-    // 1. Mark all in this aggregate as read
-    notif.allIds.forEach(id => markNotificationRead(id));
+    // RULE UPDATE: Clicking no longer marks as read automatically.
+    // Read status is only updated when follow-back is complete (in App.tsx toggleFollow).
     
-    // 2. Find the card to trace (usually the latest one)
+    // Find the card to trace (usually the latest one)
     const targetCard = cards.find(c => c.id === notif.relatedCardId);
     
     if (targetCard) {
       if (onClose) onClose();
 
-      // 3. Switch folder
+      // Switch folder
       setSelectedFolderId(targetCard.folderId);
       
-      // 4. Robust Trace Logic: Wait for DOM and Scroll
+      // Trace Logic: Scroll and Highlight
       let attempts = 0;
       const findAndHighlight = () => {
         const el = document.getElementById(`card-${targetCard.id}`);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           
-          // Apply enhanced trace highlight
           const highlightClasses = [
             'ring-8', 'ring-emerald-500/50', 'ring-offset-4', 
             'dark:ring-offset-slate-950', 'scale-105', 'z-50', 
@@ -79,13 +78,12 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
           setTimeout(() => {
             el.classList.remove(...highlightClasses);
           }, 3500);
-        } else if (attempts < 20) { // Try for 2 seconds
+        } else if (attempts < 20) {
           attempts++;
           setTimeout(findAndHighlight, 100);
         }
       };
 
-      // Start the search after a brief moment for React state to flush folder change
       setTimeout(findAndHighlight, 150);
     } else {
       if (onClose) onClose();
@@ -145,7 +143,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <span className={`font-black text-[10px] uppercase tracking-widest flex items-center gap-1 ${notif.read ? 'text-slate-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
-                      Trace Latest
+                      Trace to Connect
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </span>
                     <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">
@@ -168,7 +166,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
             onClick={() => aggregatedNotifications.forEach(n => !n.read && n.allIds.forEach(id => markNotificationRead(id)))}
             className="text-[10px] font-black text-slate-400 hover:text-indigo-500 uppercase tracking-widest transition-colors"
           >
-            Mark all as read
+            Clear all notifications
           </button>
         </div>
       )}

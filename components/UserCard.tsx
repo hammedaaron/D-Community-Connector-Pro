@@ -64,9 +64,9 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
   const handleFollowToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // NEW RULE: If not already followed, must visit profile first
+    // STRICT RULE: User must click "Open Profile" before they can click "Connect Now"
     if (!isFollowed && !hasVisitedProfile) {
-      showToast("Please open their profile first to verify identity.", "error");
+      showToast("Verification required: Open their profile before connecting.", "error");
       return;
     }
 
@@ -169,7 +169,7 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
                 isFollowed 
                   ? 'bg-emerald-500 border-emerald-400 text-white' 
                   : !hasVisitedProfile 
-                    ? 'bg-slate-400 border-slate-300 opacity-60 cursor-not-allowed text-white'
+                    ? 'bg-slate-400 border-slate-300 opacity-60 cursor-not-allowed text-white grayscale'
                     : (isDev ? 'bg-emerald-600 border-emerald-500 hover:bg-emerald-700' : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-700') + ' text-white'
               }`}
             >
@@ -183,8 +183,8 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
                 </>
               ) : (
                 <>
-                  {!hasVisitedProfile ? '' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>}
-                  <span>{hasVisitedProfile ? (followsMe ? 'Follow Back' : 'Connect Now') : 'Open to Connect'}</span>
+                  {hasVisitedProfile ? <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg> : null}
+                  <span>{hasVisitedProfile ? (followsMe ? 'Follow Back' : 'Connect Now') : 'Visit Profile to Unlock'}</span>
                 </>
               )}
             </button>
