@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card } from '../types';
 import { useApp } from '../App';
 
@@ -9,7 +9,8 @@ interface UserCardProps {
 }
 
 const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
-  const { currentUser, follows, toggleFollow, cards, isPoweredUp, theme, isAdmin, isDev, activeParty } = useApp();
+  const { currentUser, follows, toggleFollow, cards, isPoweredUp, theme, isAdmin, isDev, activeParty, showToast } = useApp();
+  const [hasVisitedProfile, setHasVisitedProfile] = useState(false);
 
   const isFollowed = follows.some(f => f.followerId === currentUser?.id && f.targetCardId === card.id);
   const isOwnCard = card.userId === currentUser?.id;
@@ -22,11 +23,10 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
 
   const isMutual = isFollowed && followsMe;
 
-  // FIX: Identify if this card was created by the System Architect
-  // 'dev-master-root' is the hardcoded ID from db.ts
+  // Identify if this card was created by the System Architect
   const isDevOwned = card.userId === 'dev-master-root';
 
-  // FIX: Permission logic - Admins cannot edit Dev cards
+  // Permission logic - Admins cannot edit Dev cards
   const canManage = isDev || isOwnCard || (isAdmin && !isDevOwned);
 
   // Ensure the link is absolute to prevent trailing deployment URLs
@@ -41,7 +41,6 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
   const stats = useMemo(() => {
     if (!activeParty) return { followers: 0, following: 0 };
     
-    // People who follow this user's cards in this party
     const targetUserCards = cards.filter(c => c.userId === card.userId).map(c => c.id);
     const uniqueFollowers = new Set(
       follows
@@ -49,7 +48,6 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
         .map(f => f.followerId)
     ).size;
 
-    // People this user follows in this party
     const uniqueFollowing = new Set(
       follows
         .filter(f => f.followerId === card.userId && f.partyId === activeParty.id)
@@ -65,6 +63,13 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
 
   const handleFollowToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // NEW RULE: If not already followed, must visit profile first
+    if (!isFollowed && !hasVisitedProfile) {
+      showToast("Please open their profile first to verify identity.", "error");
+      return;
+    }
+
     if (isFollowed) {
       if (window.confirm(`Are you sure you want to unfollow ${card.displayName}?`)) {
         toggleFollow(card.id);
@@ -85,7 +90,6 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
           : 'hover:-translate-y-1 hover:shadow-xl'
       } ${isDev ? 'mystic-green-hover' : 'hover:border-indigo-300'}`}
     >
-      {/* Dev Star Dust */}
       {isDev && <div className="star-dust"></div>}
 
       <div className="flex flex-col h-full relative z-20">
@@ -127,7 +131,6 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
           )}
         </div>
 
-        {/* Community Stats Bar */}
         <div className={`grid grid-cols-2 gap-2 mb-6 p-3 rounded-2xl border ${isDark ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
           <div className="text-center border-r border-slate-200 dark:border-slate-800">
             <p className={`text-[14px] font-black ${isDev ? 'text-emerald-400' : 'text-indigo-500'}`}>{stats.followers}</p>
@@ -144,13 +147,19 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
             href={absoluteLink} 
             target="_blank" 
             rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              setHasVisitedProfile(true);
+            }}
             className={`flex items-center justify-center gap-2 w-full py-3 px-4 text-xs font-black rounded-2xl transition-all border ${
-              isDark ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+              hasVisitedProfile 
+                ? (isDark ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700')
+                : (isDark ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200')
             }`}
           >
-            <span>Open Profile</span>
-            <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            {hasVisitedProfile && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>}
+            <span>{hasVisitedProfile ? 'Profile Viewed' : 'Open Profile'}</span>
+            {!hasVisitedProfile && <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>}
           </a>
 
           {!isOwnCard ? (
@@ -159,9 +168,14 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
               className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-xs font-black transition-all shadow-lg border-2 ${
                 isFollowed 
                   ? 'bg-emerald-500 border-emerald-400 text-white' 
-                  : (isDev ? 'bg-emerald-600 border-emerald-500 hover:bg-emerald-700' : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-700') + ' text-white'
+                  : !hasVisitedProfile 
+                    ? 'bg-slate-400 border-slate-300 opacity-60 cursor-not-allowed text-white'
+                    : (isDev ? 'bg-emerald-600 border-emerald-500 hover:bg-emerald-700' : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-700') + ' text-white'
               }`}
             >
+              {!isFollowed && !hasVisitedProfile && (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
+              )}
               {isFollowed ? (
                 <>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" /></svg>
@@ -169,8 +183,8 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
-                  <span>{followsMe ? 'Follow Back' : 'Connect Now'}</span>
+                  {!hasVisitedProfile ? '' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>}
+                  <span>{hasVisitedProfile ? (followsMe ? 'Follow Back' : 'Connect Now') : 'Open to Connect'}</span>
                 </>
               )}
             </button>
