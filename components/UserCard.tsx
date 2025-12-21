@@ -9,7 +9,7 @@ interface UserCardProps {
 }
 
 const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
-  const { currentUser, follows, toggleFollow, cards, isPoweredUp, theme, isAdmin, activeParty } = useApp();
+  const { currentUser, follows, toggleFollow, cards, isPoweredUp, theme, isAdmin, isDev, activeParty } = useApp();
 
   const isFollowed = follows.some(f => f.followerId === currentUser?.id && f.targetCardId === card.id);
   const isOwnCard = card.userId === currentUser?.id;
@@ -21,6 +21,14 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
   });
 
   const isMutual = isFollowed && followsMe;
+
+  // Ensure the link is absolute to prevent trailing deployment URLs
+  const absoluteLink = useMemo(() => {
+    const url = card.externalLink?.trim();
+    if (!url) return '#';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
+  }, [card.externalLink]);
 
   // Stats calculation: Only within this community
   const stats = useMemo(() => {
@@ -62,14 +70,17 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
   return (
     <div 
       id={`card-${card.id}`}
-      className={`relative rounded-[2rem] p-6 transition-all duration-300 flex flex-col h-full border z-10 ${
+      className={`relative rounded-[2rem] p-6 transition-all duration-300 flex flex-col h-full border z-10 overflow-hidden ${
         isPoweredUp ? 'glass-card shimmer' : isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm'
       } ${
         isFollowed 
           ? 'scale-[0.98] border-indigo-500/30' 
-          : 'hover:-translate-y-1 hover:shadow-xl hover:border-indigo-300'
-      }`}
+          : 'hover:-translate-y-1 hover:shadow-xl'
+      } ${isDev ? 'mystic-green-hover' : 'hover:border-indigo-300'}`}
     >
+      {/* Dev Star Dust */}
+      {isDev && <div className="star-dust"></div>}
+
       <div className="flex flex-col h-full relative z-20">
         <div className="flex items-start justify-between mb-4 overflow-hidden">
           <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -99,10 +110,10 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
             </div>
           </div>
           
-          {(isAdmin || isOwnCard) && (
+          {(isAdmin || isDev || isOwnCard) && (
             <button 
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all"
+              className={`p-1.5 rounded-xl transition-all ${isDark ? 'text-slate-400 hover:text-emerald-400 hover:bg-slate-800' : 'text-slate-400 hover:text-indigo-500 hover:bg-indigo-50'}`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
             </button>
@@ -112,18 +123,18 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
         {/* Community Stats Bar */}
         <div className={`grid grid-cols-2 gap-2 mb-6 p-3 rounded-2xl border ${isDark ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
           <div className="text-center border-r border-slate-200 dark:border-slate-800">
-            <p className="text-[14px] font-black text-indigo-500 dark:text-indigo-400">{stats.followers}</p>
+            <p className={`text-[14px] font-black ${isDev ? 'text-emerald-400' : 'text-indigo-500'}`}>{stats.followers}</p>
             <p className="text-[7px] font-black uppercase tracking-widest text-slate-400">Followers</p>
           </div>
           <div className="text-center">
-            <p className="text-[14px] font-black text-indigo-500 dark:text-indigo-400">{stats.following}</p>
+            <p className={`text-[14px] font-black ${isDev ? 'text-emerald-400' : 'text-indigo-500'}`}>{stats.following}</p>
             <p className="text-[7px] font-black uppercase tracking-widest text-slate-400">Following</p>
           </div>
         </div>
 
         <div className="mt-auto space-y-3">
           <a 
-            href={card.externalLink} 
+            href={absoluteLink} 
             target="_blank" 
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
@@ -141,7 +152,7 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
               className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-xs font-black transition-all shadow-lg border-2 ${
                 isFollowed 
                   ? 'bg-emerald-500 border-emerald-400 text-white' 
-                  : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-700 text-white'
+                  : (isDev ? 'bg-emerald-600 border-emerald-500 hover:bg-emerald-700' : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-700') + ' text-white'
               }`}
             >
               {isFollowed ? (
@@ -163,15 +174,6 @@ const UserCard: React.FC<UserCardProps> = ({ card, onEdit }) => {
           )}
         </div>
       </div>
-      
-      {isFollowed && !isMutual && (
-        <div className="absolute top-4 right-4 z-30">
-          <span className="flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-white"></span>
-          </span>
-        </div>
-      )}
     </div>
   );
 };

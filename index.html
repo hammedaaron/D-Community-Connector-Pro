@@ -35,6 +35,36 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+    
+    /* Mystic Green & Star Dust Styles */
+    .mystic-green-hover:hover {
+      border-color: #00ff9d !important;
+      box-shadow: 0 0 25px rgba(0, 255, 157, 0.4) !important;
+    }
+    
+    .star-dust {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      background: radial-gradient(1px 1px at 25px 5px, white, transparent),
+                  radial-gradient(1px 1px at 50px 25px, white, transparent),
+                  radial-gradient(1px 1px at 125px 45px, white, transparent),
+                  radial-gradient(1px 1px at 175px 85px, white, transparent),
+                  radial-gradient(1px 1px at 200px 110px, white, transparent);
+      background-size: 250px 250px;
+      animation: dustMovement 60s linear infinite;
+      opacity: 0.15;
+      z-index: 0;
+    }
+
+    @keyframes dustMovement {
+      from { background-position: 0 0; }
+      to { background-position: 500px 1000px; }
+    }
+
     .glass-card {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(16px);
@@ -69,12 +99,11 @@
     }
   </style>
   <script>
-    // Essential shim for browser environments where process.env is missing
     window.process = {
       env: {
         API_KEY: "AIzaSyATnmP8W_QgmmV-i0dDqWY8wau0OhU87JQ",
-        SUPABASE_URL: "https://cuqpcruevsulqiphmhnt.supabase.co",
-        SUPABASE_ANON_KEY: "sb_publishable_HA5e8RstVOzcW0CfpAB8sg_ZKF4OcFN"
+        SUPABASE_URL: "https://yxtzlteomfujnjnvsnth.supabase.co",
+        SUPABASE_ANON_KEY: "sb_publishable_hxmQGJVI_B44I7n2kUauBg_B94-woo1"
       }
     };
   </script>

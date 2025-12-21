@@ -1,7 +1,8 @@
 
 export enum UserRole {
   REGULAR = 'REGULAR',
-  ADMIN = 'ADMIN'
+  ADMIN = 'ADMIN',
+  DEV = 'DEV'
 }
 
 export interface Party {
@@ -34,6 +35,19 @@ export interface Card {
   displayName: string;
   externalLink: string;
   timestamp: number;
+  x?: number;
+  y?: number;
+}
+
+export interface InstructionBox {
+  id: string;
+  folderId: string;
+  partyId: string;
+  content: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface Follow {

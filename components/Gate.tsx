@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
-import { getParties, validateAdminPassword, registerParty, loginUser, registerUser, checkUserExists, findPartyByName } from '../db';
+import { getParties, validateAdminPassword, validateDevPassword, registerParty, loginUser, registerUser, checkUserExists, findPartyByName, SYSTEM_PARTY_ID } from '../db';
 import LandingPage from './LandingPage';
 
 interface GateProps {
@@ -23,7 +23,6 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
         setDbParties(parties || []);
       } catch (err) {
         console.error("Supabase Connectivity Error:", err);
-        // Silently fail as the app may still be in 'land' mode.
       }
     };
     fetchParties();
@@ -45,7 +44,7 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
       const parties = await getParties();
       setDbParties(parties);
     } catch (err: any) {
-      setError(err.message || "Failed to create community. Check your configuration.");
+      setError(err.message || "Failed to create community.");
     }
   };
 
@@ -53,10 +52,22 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
     e.preventDefault();
     setError('');
     
-    const cleanPartyName = partyName.trim();
     const cleanUsername = username.trim();
     const cleanPassword = password.trim();
 
+    // DEV CHECK
+    if (cleanUsername === 'Dev' && validateDevPassword(cleanPassword)) {
+      const devUser: User = {
+        id: 'dev-master-root',
+        name: 'Dev',
+        role: UserRole.DEV,
+        partyId: SYSTEM_PARTY_ID
+      };
+      onAuth(devUser);
+      return;
+    }
+
+    const cleanPartyName = partyName.trim();
     if (!cleanPartyName) {
       setError("Please enter a Membership name.");
       return;
@@ -84,7 +95,6 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
         if (exists) {
           setError("Invalid credentials.");
         } else {
-          // Join new user
           const newUser: User = {
             id: Math.random().toString(36).substr(2, 9),
             name: cleanUsername,
@@ -97,7 +107,7 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
         }
       }
     } catch (err: any) {
-      setError("Authentication failed. Ensure your database is connected.");
+      setError("Authentication failed.");
     }
   };
 
@@ -121,7 +131,7 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex flex-col">
                     <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                      {mode === 'admin-signup' ? 'Setup Your Hub' : 'Identify Membership'}
+                      {mode === 'admin-signup' ? 'Setup Your Hub' : 'Identity Membership'}
                     </h2>
                     <p className="text-slate-400 text-xs font-bold mt-1">
                       {mode === 'admin-signup' ? 'Create a unique name for your community.' : 'Enter the name of the community you want to join.'}
@@ -136,7 +146,7 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
                       Membership Name
                     </label>
                     <div className="relative">
-                      <input required placeholder="e.g. Biz High Ranker" value={partyName} onChange={e => setPartyName(e.target.value)}
+                      <input placeholder="e.g. Biz High Ranker" value={partyName} onChange={e => setPartyName(e.target.value)}
                         className="w-full bg-slate-800 border-slate-700 text-white rounded-2xl px-6 py-4 font-bold focus:ring-2 focus:ring-indigo-500 outline-none border transition-all" />
                       {mode === 'login' && dbParties.length > 0 && !partyName && (
                         <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-xl p-3 z-50 shadow-xl max-h-32 overflow-y-auto custom-scrollbar">
@@ -160,8 +170,8 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
                         className="w-full bg-slate-800 border-slate-700 text-white rounded-2xl px-6 py-4 font-bold focus:ring-2 focus:ring-indigo-500 outline-none border transition-all" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Password {mode === 'admin-signup' && '(HamstarXXX)'}</label>
-                      <input type="password" required placeholder={mode === 'admin-signup' ? "Hamstar121" : "Your password"} value={password} onChange={e => setPassword(e.target.value)}
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Password</label>
+                      <input type="password" required placeholder="Your password" value={password} onChange={e => setPassword(e.target.value)}
                         className="w-full bg-slate-800 border-slate-700 text-white rounded-2xl px-6 py-4 font-bold focus:ring-2 focus:ring-indigo-500 outline-none border transition-all" />
                     </div>
                   </div>

@@ -20,7 +20,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ card, onClose, onUp
 
   const handleUpdate = () => {
     if (!name.trim() || !link.trim()) return;
-    onUpdate(card.id, name.trim(), link.trim());
+    
+    // Auto-fix URL to be absolute
+    let cleanLink = link.trim();
+    if (!cleanLink.startsWith('http://') && !cleanLink.startsWith('https://')) {
+      cleanLink = `https://${cleanLink}`;
+    }
+
+    onUpdate(card.id, name.trim(), cleanLink);
   };
 
   return (
@@ -54,7 +61,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ card, onClose, onUp
           <div className="space-y-2">
             <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-2">Social Link</label>
             <input 
-              type="url" 
+              type="text" 
               value={link}
               onChange={(e) => setLink(e.target.value)}
               className={`w-full px-6 py-4 rounded-2xl font-bold outline-none border transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500'}`}
