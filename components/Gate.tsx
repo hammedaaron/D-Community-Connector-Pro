@@ -4,6 +4,7 @@ import { User, UserRole } from '../types';
 import { getParties, validateAdminPassword, validateDevPassword, registerParty, loginUser, registerUser, checkUserExists, findPartyByName, ensureDevUser } from '../db';
 import LandingPage from './LandingPage';
 import AdminDocs from './AdminDocs';
+import UserDocs from './UserDocs';
 
 interface GateProps {
   onAuth: (user: User) => void;
@@ -16,7 +17,8 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [dbParties, setDbParties] = useState<{name: string}[]>([]);
-  const [showDocs, setShowDocs] = useState(false);
+  const [showAdminDocs, setShowAdminDocs] = useState(false);
+  const [showUserDocs, setShowUserDocs] = useState(false);
   const [showAdminTips, setShowAdminTips] = useState(false);
 
   useEffect(() => {
@@ -115,7 +117,8 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
 
   return (
     <div className="fixed inset-0 z-[200] bg-slate-950 overflow-y-auto custom-scrollbar">
-      {showDocs && <AdminDocs onClose={() => setShowDocs(false)} />}
+      {showAdminDocs && <AdminDocs onClose={() => setShowAdminDocs(false)} />}
+      {showUserDocs && <UserDocs onClose={() => setShowUserDocs(false)} />}
       
       <div className="fixed inset-0 opacity-40 pointer-events-none overflow-hidden">
         <div className="absolute top-0 -left-1/4 w-1/2 h-full bg-indigo-600/20 blur-[120px] rounded-full animate-pulse" />
@@ -141,16 +144,30 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
                       {mode === 'admin-signup' ? 'Create a unique name for your community.' : 'Enter the name of the community you want to join.'}
                     </p>
                   </div>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowDocs(true)}
-                    className="flex flex-col items-center gap-1 group"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <span className="text-[8px] font-black uppercase text-slate-500 tracking-tighter">Admin Guide</span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowAdminDocs(true)}
+                      className="flex flex-col items-center gap-1 group"
+                      title="Admin Blueprint"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </div>
+                      <span className="text-[8px] font-black uppercase text-slate-500 tracking-tighter">Admin</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setShowUserDocs(true)}
+                      className="flex flex-col items-center gap-1 group"
+                      title="Member Handbook"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                      </div>
+                      <span className="text-[8px] font-black uppercase text-slate-500 tracking-tighter">Guide</span>
+                    </button>
+                  </div>
                 </div>
 
                 {mode === 'admin-signup' && (
