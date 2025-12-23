@@ -88,7 +88,7 @@ const App: React.FC = () => {
     setTimeout(() => setToast(null), 4000);
   }, []);
 
-  const syncData = useCallback(async () => {
+  const syncData = useCallback(async (retryCount = 0) => {
     const pid = currentUser?.partyId || SYSTEM_PARTY_ID;
     try {
       const party = await findParty(pid);
@@ -109,16 +109,21 @@ const App: React.FC = () => {
       setNotifications(data.notifications);
       setInstructions(data.instructions);
     } catch (err: any) {
-      console.error("Sync Error:", err);
+      console.error(`Sync Error (Attempt ${retryCount}):`, err);
+      if (retryCount < 2) {
+        setTimeout(() => syncData(retryCount + 1), 2000);
+      } else {
+        showToast("Connection unstable. Check your network.", "error");
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, showToast]);
 
   useEffect(() => {
     if (!currentUser) return;
     const channel = supabase.channel(`global_sync`)
-      .on('postgres_changes', { event: '*', schema: 'public' }, syncData)
+      .on('postgres_changes', { event: '*', schema: 'public' }, () => syncData())
       .subscribe();
     syncData();
     return () => { supabase.removeChannel(channel); };
@@ -156,7 +161,6 @@ const App: React.FC = () => {
           !n.read
         );
         
-        // RULE UPDATE: Notifications only wear off when the user follows back
         for (const n of relatedNotifs) {
           await markRead(n.id);
         }

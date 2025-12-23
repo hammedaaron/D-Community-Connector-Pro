@@ -145,17 +145,19 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button 
-                      type="button" 
-                      onClick={() => setShowAdminDocs(true)}
-                      className="flex flex-col items-center gap-1 group"
-                      title="Admin Blueprint"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      </div>
-                      <span className="text-[8px] font-black uppercase text-slate-500 tracking-tighter">Admin</span>
-                    </button>
+                    {mode === 'admin-signup' && (
+                      <button 
+                        type="button" 
+                        onClick={() => setShowAdminDocs(true)}
+                        className="flex flex-col items-center gap-1 group"
+                        title="Admin Blueprint"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <span className="text-[8px] font-black uppercase text-slate-500 tracking-tighter">Admin</span>
+                      </button>
+                    )}
                     <button 
                       type="button" 
                       onClick={() => setShowUserDocs(true)}
