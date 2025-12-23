@@ -14,9 +14,10 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
   const [link, setLink] = useState('');
   const isDark = theme === 'dark';
 
-  // Bypass: If user is Dev or Admin, they are never blocked from adding more
+  // Enforcement: Both regular users and Admins are restricted to one profile per community folder.
+  // Only the System Architect (Dev) is privileged to create multiple nodes.
   const alreadyHasProfile = cards.some(c => c.userId === currentUser?.id && c.folderId === selectedFolderId);
-  const isPrivileged = currentUser?.role === UserRole.DEV || currentUser?.role === UserRole.ADMIN;
+  const isPrivileged = currentUser?.role === UserRole.DEV;
   const isEnforced = alreadyHasProfile && !isPrivileged;
 
   const handlePost = () => {
@@ -52,7 +53,7 @@ const CreateProfileModal: React.FC<CreateProfileModalProps> = ({ onClose, onSubm
               <div>
                 <h4 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Limit Reached</h4>
                 <p className="text-sm font-medium text-slate-500 mt-2">
-                  Each member is limited to one profile per community to ensure fairness. Please edit your existing card instead.
+                  Each member, including Admins, is limited to one profile per community to ensure fairness. Please edit your existing card instead.
                 </p>
               </div>
             </div>

@@ -84,21 +84,54 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
         return;
       }
 
+      // 1. Try standard login
       const user = await loginUser(cleanUsername, cleanPassword, activeParty.id);
 
       if (user) {
         onAuth(user);
       } else {
-        const isAdminCheck = validateAdminPassword(cleanPassword);
-        if (isAdminCheck) {
-          setError("Invalid admin credentials for this community.");
-          return;
+        // 2. Check if this is an Admin attempting to join an existing party with a valid key
+        const adminInfo = validateAdminPassword(cleanPassword);
+        
+        if (adminInfo && cleanUsername === 'Admin') {
+          // Verify the party ID in the password matches the active party
+          if (adminInfo.partyId === activeParty.id) {
+            // Check if this specific admin (Y) already exists
+            const adminId = `admin-${adminInfo.partyId}-${adminInfo.adminId}`;
+            const exists = await checkUserExists('Admin', activeParty.id); // This checks if ANY user named Admin exists in this party with this password? 
+            // Better to check specifically for the unique ID or the adminCode.
+            
+            // For simplicity and matching user request:
+            // Register this specific admin (Y) on the fly for this community
+            const newAdmin: User = {
+              id: adminId,
+              name: 'Admin',
+              adminCode: cleanPassword,
+              role: UserRole.ADMIN,
+              partyId: activeParty.id
+            };
+
+            try {
+              await registerUser(newAdmin);
+              onAuth(newAdmin);
+            } catch (regErr: any) {
+              // If register fails because it exists, try logging in again (standard path might have missed it if password/name combination was weird)
+              const retryUser = await loginUser(cleanUsername, cleanPassword, activeParty.id);
+              if (retryUser) onAuth(retryUser);
+              else setError("Admin key mismatch for this account.");
+            }
+            return;
+          } else {
+            setError(`Admin key ${adminInfo.partyId} does not match community ${activeParty.id}.`);
+            return;
+          }
         }
 
         const exists = await checkUserExists(cleanUsername, activeParty.id);
         if (exists) {
           setError("Invalid credentials.");
         } else {
+          // Regular user registration
           const newUser: User = {
             id: Math.random().toString(36).substr(2, 9),
             name: cleanUsername,
@@ -202,7 +235,7 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
                       Membership Name
                     </label>
                     <div className="relative">
-                      <input placeholder="e.g. Biz High Ranker" value={partyName} onChange={e => setPartyName(e.target.value)}
+                      <input placeholder="e.g. Volt" value={partyName} onChange={e => setPartyName(e.target.value)}
                         className="w-full bg-slate-800 border-slate-700 text-white rounded-2xl px-6 py-4 font-bold focus:ring-2 focus:ring-indigo-500 outline-none border transition-all" />
                       {mode === 'login' && dbParties.length > 0 && !partyName && (
                         <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-xl p-3 z-50 shadow-xl max-h-32 overflow-y-auto custom-scrollbar">
