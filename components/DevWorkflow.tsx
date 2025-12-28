@@ -2,12 +2,12 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../App';
 import { Card, InstructionBox } from '../types';
-import { upsertCard, upsertInstruction, deleteInstruction } from '../db';
+import { upsertCard, upsertInstruction, deleteInstruction, resetAllData } from '../db';
 import UserCard from './UserCard';
 import { SYSTEM_PARTY_ID } from '../db';
 
 const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
-  const { cards, instructions, activeParty, showToast, theme, folders } = useApp();
+  const { cards, instructions, activeParty, showToast, theme, folders, logout } = useApp();
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const isDark = theme === 'dark';
@@ -65,6 +65,22 @@ const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
     }
   };
 
+  const handleReset = async () => {
+    if (!window.confirm("CRITICAL ACTION: This will delete ALL communities, users, profiles, and notifications permanently. Are you absolutely sure?")) return;
+    
+    try {
+      showToast("Initiating wipe sequence...");
+      await resetAllData();
+      showToast("System Purged. Restarting...");
+      setTimeout(() => {
+        logout();
+        window.location.reload();
+      }, 2000);
+    } catch (err) {
+      showToast("Reset failed: " + err, "error");
+    }
+  };
+
   const updateBoxContent = async (id: string, content: string) => {
     const box = folderInstructions.find(i => i.id === id);
     if (box) {
@@ -90,14 +106,12 @@ const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
     const boldRegex = /\*\*(.*?)\*\*/g;
 
     return parts.map((line, i) => {
-      // MASTER STYLE: H2 is Mystic Green
       if (line.trim().startsWith('## ')) {
         return <h2 key={i} className="text-[#00ff9d] text-2xl font-black mb-4 mt-6 first:mt-0 uppercase tracking-tighter">{line.replace('## ', '').trim()}</h2>;
       }
       
       const segments = line.split(boldRegex);
       const formatted = segments.map((segment, index) => {
-        // MASTER STYLE: Bold is Mystic Blue
         if (index % 2 === 1) return <b key={index} className="text-[#2563eb] dark:text-[#60a5fa] font-black">{segment}</b>;
         return segment;
       });
@@ -121,6 +135,13 @@ const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
           New System Message
+        </button>
+        <button 
+          onClick={handleReset}
+          className="pointer-events-auto bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-2xl font-black shadow-2xl shadow-red-500/30 text-xs uppercase tracking-widest flex items-center gap-3 transform transition-all active:scale-95"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          Reset Everything
         </button>
         <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700 px-6 py-4 rounded-2xl text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em] flex items-center shadow-2xl border-l-4 border-l-emerald-500">
           Architect Console: Design Global Community Workflows

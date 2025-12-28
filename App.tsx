@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import React, { useState, useEffect, useCallback, createContext, useContext, useRef } from 'react';
 import { User, UserRole, Folder, Card, Follow, AppNotification, NotificationType, Party, InstructionBox } from './types';
 import { getSession, saveSession, findParty, getPartyData, markRead, deleteCard as dbDeleteCard, upsertCard, upsertFollow, addNotification, SYSTEM_PARTY_ID } from './db';
 import { supabase } from './supabase';
@@ -41,6 +41,7 @@ interface AppContextType {
   showToast: (message: any, type?: 'success' | 'error') => void;
   isWorkflowMode: boolean;
   setIsWorkflowMode: (val: boolean) => void;
+  socketStatus: 'connected' | 'disconnected' | 'connecting';
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -68,22 +69,13 @@ const App: React.FC = () => {
   const [isWorkflowMode, setIsWorkflowMode] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [socketStatus, setSocketStatus] = useState<'connected' | 'disconnected' | 'connecting'>('connecting');
+
+  const lastSyncTime = useRef<number>(0);
+  const syncTimeout = useRef<any>(null);
 
   const showToast = useCallback((message: any, type: 'success' | 'error' = 'success') => {
-    let finalMsg = "Notice";
-    if (typeof message === 'string') {
-      finalMsg = message;
-    } else if (message?.message) {
-      finalMsg = String(message.message);
-    } else if (message && typeof message === 'object') {
-      try {
-        finalMsg = JSON.stringify(message);
-      } catch {
-        finalMsg = "An error occurred";
-      }
-    } else if (message) {
-      finalMsg = String(message);
-    }
+    let finalMsg = typeof message === 'string' ? message : message?.message || "Notice";
     setToast({ message: finalMsg, type });
     setTimeout(() => setToast(null), 4000);
   }, []);
@@ -92,16 +84,7 @@ const App: React.FC = () => {
     const pid = currentUser?.partyId || SYSTEM_PARTY_ID;
     try {
       const party = await findParty(pid);
-      if (party) {
-        setActiveParty(party);
-        if (currentUser?.role !== UserRole.DEV) {
-          const nameSlug = party.name.replace(/\s+/g, '-');
-          const expectedHash = `#/party/${party.id}/${nameSlug}`;
-          if (window.location.hash !== expectedHash) {
-            window.location.hash = expectedHash;
-          }
-        }
-      }
+      if (party) setActiveParty(party);
       const data = await getPartyData(pid);
       setFolders(data.folders);
       setCards(data.cards);
@@ -109,25 +92,61 @@ const App: React.FC = () => {
       setNotifications(data.notifications);
       setInstructions(data.instructions);
     } catch (err: any) {
-      console.error(`Sync Error (Attempt ${retryCount}):`, err);
-      if (retryCount < 2) {
-        setTimeout(() => syncData(retryCount + 1), 2000);
-      } else {
-        showToast("Connection unstable. Check your network.", "error");
-      }
+      if (retryCount < 1) setTimeout(() => syncData(retryCount + 1), 2000);
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser, showToast]);
+  }, [currentUser]);
+
+  const throttledSync = useCallback(() => {
+    const now = Date.now();
+    if (syncTimeout.current) clearTimeout(syncTimeout.current);
+    if (now - lastSyncTime.current > 2000) {
+      lastSyncTime.current = now;
+      syncData();
+    } else {
+      syncTimeout.current = setTimeout(() => {
+        lastSyncTime.current = Date.now();
+        syncData();
+      }, 2000);
+    }
+  }, [syncData]);
 
   useEffect(() => {
-    if (!currentUser) return;
-    const channel = supabase.channel(`global_sync`)
-      .on('postgres_changes', { event: '*', schema: 'public' }, () => syncData())
-      .subscribe();
+    if (!currentUser || !currentUser.partyId) return;
+
+    const pid = currentUser.partyId;
+    const channel = supabase.channel(`optimized-party-${pid}`);
+
+    channel
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cards', filter: `partyId=eq.${pid}` }, () => throttledSync())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'folders', filter: `partyId=eq.${pid}` }, () => throttledSync())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'instructions', filter: `partyId=eq.${pid}` }, () => throttledSync())
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setSocketStatus('connected');
+        else if (status === 'CLOSED') setSocketStatus('disconnected');
+      });
+
+    // ADAPTIVE POLLING: Pause when user is not looking at the app
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        throttledSync();
+      }
+    }, 30000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') throttledSync();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     syncData();
-    return () => { supabase.removeChannel(channel); };
-  }, [currentUser, syncData]);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [currentUser, throttledSync, syncData]);
 
   useEffect(() => {
     if (currentUser) {
@@ -153,43 +172,31 @@ const App: React.FC = () => {
       await upsertFollow(newFollow, !isAlreadyFollowed);
       
       if (!isAlreadyFollowed && targetCard.userId !== currentUser.id) {
-        // Find existing unread follow notifications from this person to mark as read
-        const relatedNotifs = notifications.filter(n => 
-          n.recipientId === currentUser.id && 
-          n.senderId === targetCard.userId && 
-          n.type === NotificationType.FOLLOW &&
-          !n.read
-        );
-        
-        for (const n of relatedNotifs) {
-          await markRead(n.id);
-        }
+        const relatedNotifs = notifications.filter(n => n.recipientId === currentUser.id && n.senderId === targetCard.userId && n.type === NotificationType.FOLLOW && !n.read);
+        for (const n of relatedNotifs) await markRead(n.id);
 
         const senderCard = cards.find(c => c.userId === currentUser.id && c.partyId === activeParty.id);
         const myCardIds = cards.filter(c => c.userId === currentUser.id).map(c => c.id);
         const isFollowBack = follows.some(f => f.followerId === targetCard.userId && myCardIds.includes(f.targetCardId));
         
         await addNotification({ 
-          recipientId: targetCard.userId, 
-          senderId: currentUser.id, 
-          senderName: currentUser.name, 
+          recipientId: targetCard.userId, senderId: currentUser.id, senderName: currentUser.name, 
           type: isFollowBack ? NotificationType.FOLLOW_BACK : NotificationType.FOLLOW, 
-          relatedCardId: senderCard?.id || '', 
-          partyId: activeParty.id 
+          relatedCardId: senderCard?.id || '', partyId: activeParty.id 
         });
       }
-      syncData();
+      throttledSync();
     } catch (err) { showToast(err, "error"); }
-  }, [currentUser, activeParty, follows, cards, notifications, syncData, showToast]);
+  }, [currentUser, activeParty, follows, cards, notifications, throttledSync, showToast]);
 
   const markNotificationRead = async (id: string) => {
     await markRead(id);
-    syncData();
+    throttledSync();
   };
 
   const deleteCard = async (id: string) => {
     await dbDeleteCard(id);
-    syncData();
+    throttledSync();
     setEditingCard(null);
     showToast("Profile removed.");
   };
@@ -198,7 +205,7 @@ const App: React.FC = () => {
     const existingCard = cards.find(c => c.id === id);
     if (!existingCard) return;
     await upsertCard({ ...existingCard, displayName: name, externalLink: link }, true);
-    syncData();
+    throttledSync();
     setEditingCard(null);
     showToast("Profile updated.");
   };
@@ -213,13 +220,12 @@ const App: React.FC = () => {
   };
 
   const contextValue: AppContextType = {
-    currentUser, setCurrentUser, activeParty, 
-    isAdmin: currentUser?.role === UserRole.ADMIN,
-    isDev: currentUser?.role === UserRole.DEV,
-    logout, folders, setFolders, cards, setCards,
+    currentUser, setCurrentUser, activeParty, isAdmin: currentUser?.role === UserRole.ADMIN,
+    isDev: currentUser?.role === UserRole.DEV, logout, folders, setFolders, cards, setCards,
     follows, toggleFollow, notifications, instructions, markNotificationRead,
     selectedFolderId, setSelectedFolderId, deleteCard, updateCard, searchQuery, setSearchQuery,
-    theme, setTheme, isPoweredUp, setIsPoweredUp, showToast, isWorkflowMode, setIsWorkflowMode
+    theme, setTheme, isPoweredUp, setIsPoweredUp, showToast, isWorkflowMode, setIsWorkflowMode,
+    socketStatus
   };
 
   if (!currentUser) {
@@ -245,69 +251,39 @@ const App: React.FC = () => {
         ) : (isWorkflowMode && currentUser.role === UserRole.DEV) ? (
           <DevWorkflow folderId={selectedFolderId} />
         ) : (
-          <CardGrid 
-            folderId={selectedFolderId} 
-            onEditCard={(card) => setEditingCard(card)}
-          />
+          <CardGrid folderId={selectedFolderId} onEditCard={(card) => setEditingCard(card)} />
         )}
       </Layout>
 
       {isCreateModalOpen && (
-        <CreateProfileModal 
-          onClose={() => setIsCreateModalOpen(false)} 
-          onSubmit={async (name, link) => {
-            if (!currentUser || !selectedFolderId) return;
-            
-            const folder = folders.find(f => f.id === selectedFolderId);
-            const isSystemFolder = folder?.partyId === SYSTEM_PARTY_ID;
-            const isDev = currentUser.role === UserRole.DEV;
-            
-            if (isSystemFolder && !isDev) {
-              showToast("Only System Architect can establish nodes here.", "error");
-              return;
-            }
-
-            const alreadyHasProfile = cards.some(c => c.userId === currentUser.id && c.folderId === selectedFolderId);
-            const isPrivileged = isDev || currentUser.role === UserRole.ADMIN;
-            
-            if (alreadyHasProfile && !isPrivileged) {
-              showToast("Profile exists already.", "error");
-              return;
-            }
-
-            const targetPartyId = isSystemFolder ? SYSTEM_PARTY_ID : activeParty?.id || SYSTEM_PARTY_ID;
-
-            const newCard: Card = { 
-              id: Math.random().toString(36).substr(2, 9), 
-              userId: currentUser.id, 
-              folderId: selectedFolderId, 
-              partyId: targetPartyId, 
-              displayName: name, 
-              externalLink: link, 
-              timestamp: Date.now()
-            };
-            
-            try {
-              await upsertCard(newCard);
-              syncData();
-              setIsCreateModalOpen(false);
-              showToast("Profile added successfully!");
-            } catch (err: any) {
-              showToast(err, "error");
-            }
-          }} 
-        />
+        <CreateProfileModal onClose={() => setIsCreateModalOpen(false)} onSubmit={async (name, link) => {
+          if (!currentUser || !selectedFolderId) return;
+          const folder = folders.find(f => f.id === selectedFolderId);
+          const isSystemFolder = folder?.partyId === SYSTEM_PARTY_ID;
+          if (isSystemFolder && currentUser.role !== UserRole.DEV) {
+            showToast("Restricted folder.", "error");
+            return;
+          }
+          const alreadyHasProfile = cards.some(c => c.userId === currentUser.id && c.folderId === selectedFolderId);
+          if (alreadyHasProfile && currentUser.role === UserRole.REGULAR) {
+            showToast("Profile exists.", "error");
+            return;
+          }
+          const newCard: Card = { 
+            id: Math.random().toString(36).substr(2, 9), userId: currentUser.id, 
+            folderId: selectedFolderId, partyId: isSystemFolder ? SYSTEM_PARTY_ID : activeParty?.id || SYSTEM_PARTY_ID, 
+            displayName: name, externalLink: link, timestamp: Date.now()
+          };
+          try {
+            await upsertCard(newCard);
+            throttledSync();
+            setIsCreateModalOpen(false);
+            showToast("Profile added!");
+          } catch (err: any) { showToast(err, "error"); }
+        }} />
       )}
 
-      {editingCard && (
-        <EditProfileModal 
-          card={editingCard}
-          onClose={() => setEditingCard(null)}
-          onUpdate={updateCard}
-          onDelete={deleteCard}
-        />
-      )}
-
+      {editingCard && <EditProfileModal card={editingCard} onClose={() => setEditingCard(null)} onUpdate={updateCard} onDelete={deleteCard} />}
       {toast && <Toast message={toast.message} type={toast.type} />}
     </AppContext.Provider>
   );

@@ -16,10 +16,11 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [dbParties, setDbParties] = useState<{name: string}[]>([]);
+  const [dbParties, setDbParties] = useState<{id: string, name: string}[]>([]);
   const [showAdminDocs, setShowAdminDocs] = useState(false);
   const [showUserDocs, setShowUserDocs] = useState(false);
   const [showAdminTips, setShowAdminTips] = useState(false);
+  const [showAvailability, setShowAvailability] = useState(false);
 
   useEffect(() => {
     const fetchParties = async () => {
@@ -84,25 +85,16 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
         return;
       }
 
-      // 1. Try standard login
       const user = await loginUser(cleanUsername, cleanPassword, activeParty.id);
 
       if (user) {
         onAuth(user);
       } else {
-        // 2. Check if this is an Admin attempting to join an existing party with a valid key
         const adminInfo = validateAdminPassword(cleanPassword);
         
         if (adminInfo && cleanUsername === 'Admin') {
-          // Verify the party ID in the password matches the active party
           if (adminInfo.partyId === activeParty.id) {
-            // Check if this specific admin (Y) already exists
             const adminId = `admin-${adminInfo.partyId}-${adminInfo.adminId}`;
-            const exists = await checkUserExists('Admin', activeParty.id); // This checks if ANY user named Admin exists in this party with this password? 
-            // Better to check specifically for the unique ID or the adminCode.
-            
-            // For simplicity and matching user request:
-            // Register this specific admin (Y) on the fly for this community
             const newAdmin: User = {
               id: adminId,
               name: 'Admin',
@@ -115,7 +107,6 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
               await registerUser(newAdmin);
               onAuth(newAdmin);
             } catch (regErr: any) {
-              // If register fails because it exists, try logging in again (standard path might have missed it if password/name combination was weird)
               const retryUser = await loginUser(cleanUsername, cleanPassword, activeParty.id);
               if (retryUser) onAuth(retryUser);
               else setError("Admin key mismatch for this account.");
@@ -131,7 +122,6 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
         if (exists) {
           setError("Invalid credentials.");
         } else {
-          // Regular user registration
           const newUser: User = {
             id: Math.random().toString(36).substr(2, 9),
             name: cleanUsername,
@@ -147,6 +137,9 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
       setError("Authentication failed.");
     }
   };
+
+  const takenIds = dbParties.map(p => p.id);
+  const availableCount = 89 - takenIds.length; // Range 11-99 is 89 numbers
 
   return (
     <div className="fixed inset-0 z-[200] bg-slate-950 overflow-y-auto custom-scrollbar">
@@ -206,23 +199,62 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
                 </div>
 
                 {mode === 'admin-signup' && (
-                  <div className="animate-in slide-in-from-top-4 duration-500">
-                    <button 
-                      type="button"
-                      onClick={() => setShowAdminTips(!showAdminTips)}
-                      className="w-full p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 flex items-center justify-between text-indigo-400"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="animate-bounce">💡</div>
-                        <span className="text-[10px] font-black uppercase tracking-widest">How to launch as admin?</span>
-                      </div>
-                      <svg className={`w-4 h-4 transition-transform ${showAdminTips ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
-                    </button>
+                  <div className="animate-in slide-in-from-top-4 duration-500 space-y-4">
+                    <div className="flex gap-2">
+                      <button 
+                        type="button"
+                        onClick={() => setShowAdminTips(!showAdminTips)}
+                        className="flex-1 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 flex items-center justify-between text-indigo-400"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="animate-bounce">💡</div>
+                          <span className="text-[10px] font-black uppercase tracking-widest">Admin Tips</span>
+                        </div>
+                        <svg className={`w-4 h-4 transition-transform ${showAdminTips ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setShowAvailability(!showAvailability)}
+                        className={`px-4 py-2 rounded-2xl border transition-all flex flex-col items-center justify-center min-w-[100px] ${showAvailability ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}
+                      >
+                        <span className="text-[10px] font-black uppercase tracking-tighter">{availableCount} Left</span>
+                        <span className="text-[8px] font-bold uppercase tracking-widest">Free IDs</span>
+                      </button>
+                    </div>
+
                     {showAdminTips && (
-                      <div className="mt-2 p-5 bg-slate-950/50 rounded-2xl border border-slate-800 text-[11px] font-medium text-slate-400 leading-relaxed space-y-2 animate-in fade-in zoom-in-95">
+                      <div className="p-5 bg-slate-950/50 rounded-2xl border border-slate-800 text-[11px] font-medium text-slate-400 leading-relaxed space-y-2 animate-in fade-in zoom-in-95">
                         <p>1. Set your <strong className="text-white">Username</strong> to exactly <code className="text-indigo-400 font-bold">Admin</code>.</p>
                         <p>2. Set a <strong className="text-white">Password</strong> following the <code className="text-indigo-400 font-bold">Hamstar[XX][Y]</code> rule.</p>
                         <p>3. This creates a secure, verifiable community key.</p>
+                      </div>
+                    )}
+
+                    {showAvailability && (
+                      <div className="p-6 bg-slate-950/80 rounded-[2rem] border border-slate-800 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center justify-between">
+                          Available Party IDs (11-99)
+                          <span className="text-emerald-500">Pick any GREEN number</span>
+                        </h4>
+                        <div className="grid grid-cols-6 sm:grid-cols-9 gap-2">
+                          {Array.from({ length: 89 }, (_, i) => {
+                            const id = (i + 11).toString();
+                            const isTaken = takenIds.includes(id);
+                            return (
+                              <div 
+                                key={id} 
+                                className={`text-[10px] font-black p-2 rounded-lg text-center transition-all border ${
+                                  isTaken 
+                                    ? 'bg-red-500/10 border-red-500/20 text-red-500/40 cursor-not-allowed' 
+                                    : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white cursor-help'
+                                }`}
+                                title={isTaken ? `ID ${id} is Taken` : `ID ${id} is Available`}
+                              >
+                                {id}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -242,7 +274,7 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Registered Communities:</p>
                            <div className="flex flex-wrap gap-2">
                              {dbParties.map(p => (
-                               <button key={p.name} type="button" onClick={() => setPartyName(p.name)} className="text-[10px] font-bold bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white px-2 py-1 rounded-md transition-colors">
+                               <button key={p.id} type="button" onClick={() => setPartyName(p.name)} className="text-[10px] font-bold bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white px-2 py-1 rounded-md transition-colors">
                                  {p.name}
                                </button>
                              ))}
