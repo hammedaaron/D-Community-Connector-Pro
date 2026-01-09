@@ -22,8 +22,8 @@ const Gate: React.FC<GateProps> = ({ onAuth }) => {
   const [showAdminTips, setShowAdminTips] = useState(false);
   const [showAvailability, setShowAvailability] = useState(false);
   
-  // NOTE: Landing, Login, and Signup are PERMANENTLY DARK MODE as requested.
-  // We ignore any global theme variable here and force slate-950/900 classes.
+  // NOTE: Gate is PERMANENTLY DARK MODE as requested.
+  // We use hardcoded slate-950/900 classes instead of theme-aware ones.
 
   useEffect(() => {
     const fetchParties = async () => {

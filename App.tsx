@@ -167,13 +167,28 @@ const App: React.FC = () => {
     if (!targetCard) return;
 
     try {
+      // 1. Perform follow operation
       const newFollow: Follow = { id: Math.random().toString(36).substr(2, 9), followerId: currentUser.id, targetCardId: cardId, partyId: activeParty.id, timestamp: Date.now() };
       await upsertFollow(newFollow, !isAlreadyFollowed);
       
+      // 2. Notification Clearance Protocol
       if (!isAlreadyFollowed && targetCard.userId !== currentUser.id) {
-        const relatedNotifs = notifications.filter(n => n.recipientId === currentUser.id && n.senderId === targetCard.userId && n.type === NotificationType.FOLLOW && !n.read);
-        for (const n of relatedNotifs) await markRead(n.id);
+        // Optimistically clear unread notifications from this specific target user
+        const unreadFromTarget = notifications.filter(n => n.recipientId === currentUser.id && n.senderId === targetCard.userId && !n.read);
+        
+        if (unreadFromTarget.length > 0) {
+          // Local state update for instant feedback
+          setNotifications(prev => prev.map(n => 
+            (n.recipientId === currentUser.id && n.senderId === targetCard.userId) ? { ...n, read: true } : n
+          ));
 
+          // Permanent DB update
+          for (const n of unreadFromTarget) {
+            await markRead(n.id);
+          }
+        }
+
+        // 3. Send outgoing notification
         const senderCard = cards.find(c => c.userId === currentUser.id && c.partyId === activeParty.id);
         const myCardIds = cards.filter(c => c.userId === currentUser.id).map(c => c.id);
         const isFollowBack = follows.some(f => f.followerId === targetCard.userId && myCardIds.includes(f.targetCardId));
@@ -184,8 +199,11 @@ const App: React.FC = () => {
           relatedCardId: senderCard?.id || '', partyId: activeParty.id 
         });
       }
+
       throttledSync();
-    } catch (err) { showToast(err, "error"); }
+    } catch (err) { 
+      showToast(err, "error"); 
+    }
   }, [currentUser, activeParty, follows, cards, notifications, throttledSync, showToast]);
 
   const markNotificationRead = async (id: string) => {
@@ -210,11 +228,8 @@ const App: React.FC = () => {
   };
 
   const logout = () => {
-    // 1. Clear session
     saveSession(null);
-    // 2. Reset hash to return to landing
-    window.location.hash = '';
-    // 3. Clear all state
+    window.location.hash = ''; // Return to landing page
     setCurrentUser(null);
     setActiveParty(null);
     setFolders([]);
@@ -223,7 +238,6 @@ const App: React.FC = () => {
     setNotifications([]);
     setInstructions([]);
     setSelectedFolderId(null);
-    // 4. Reset theme (Gate will override to Dark)
     setTheme('light');
   };
 

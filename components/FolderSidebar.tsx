@@ -105,9 +105,9 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
   };
 
   return (
-    <aside className={`w-full lg:w-72 flex flex-col h-full border-r transition-colors duration-500 animate-in slide-in-from-left duration-300 z-[100] ${isDark ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-slate-200 text-slate-600 shadow-xl'}`}>
+    <aside className={`w-full lg:w-72 flex flex-col h-full border-r transition-all duration-500 animate-in slide-in-from-left duration-300 z-[100] ${isDark ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-slate-200 text-slate-600 shadow-xl'}`}>
       <div className="p-6 lg:p-8 pb-4 flex items-center justify-between">
-        <h2 className={`font-black text-xl lg:text-2xl tracking-tighter flex items-center gap-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <h2 className={`font-black text-xl lg:text-2xl tracking-tighter flex items-center gap-3 transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg ${isDev ? 'bg-emerald-500 shadow-emerald-500/20' : isAdmin ? 'bg-amber-500 shadow-amber-500/20' : 'bg-indigo-600 shadow-indigo-500/20'}`}>
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
@@ -115,7 +115,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
           </div>
           {isDev ? 'Architect' : (activeParty?.name || 'Hub')}
         </h2>
-        <button onClick={onSelect} className="lg:hidden p-2.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+        <button onClick={onSelect} className={`lg:hidden p-2.5 rounded-2xl transition-colors ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
       </div>
@@ -128,7 +128,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
               className={`w-full flex items-center gap-4 px-4 py-3 lg:py-4 rounded-2xl transition-all ${
                 selectedFolderId === 'authority-table'
                   ? 'bg-emerald-500 text-white shadow-lg'
-                  : 'hover:bg-slate-800 hover:text-white font-semibold'
+                  : isDark ? 'hover:bg-slate-800 hover:text-white font-semibold' : 'hover:bg-slate-100 font-semibold'
               }`}
             >
               <span className="text-xl">🕵️‍♂️</span>
@@ -138,7 +138,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
         )}
 
         <div className="mb-4 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center justify-between">
-          <span>{isDev ? 'Global Infrastructure' : 'Communities'}</span>
+          <span>{isDev ? 'Infrastructure' : 'Sectors'}</span>
           {(isAdmin && !isDev) && (
             <button onClick={copyInviteLink} className="text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
@@ -170,7 +170,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
                     className={`flex-1 flex items-center gap-4 px-4 py-4 rounded-2xl transition-all ${
                       selectedFolderId === folder.id 
                         ? (isDev ? 'bg-emerald-600' : isAdmin ? 'bg-amber-500' : 'bg-indigo-600') + ' text-white shadow-lg' 
-                        : `hover:bg-slate-100 ${isDark ? 'hover:bg-slate-800 hover:text-white' : ''} font-bold text-sm`
+                        : `hover:bg-slate-100 ${isDark ? 'hover:bg-slate-800 hover:text-white' : 'text-slate-700'} font-bold text-sm`
                     }`}
                   >
                     <span className="text-xl">
@@ -197,19 +197,19 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
         {(isAdmin || isDev) && (
           <div className="mt-8 px-2">
             {!isAdding ? (
-              <button onClick={() => setIsAdding(true)} className={`w-full py-4 px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-dashed flex items-center justify-center gap-2 transition-all ${isDark ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 hover:border-emerald-500' : 'bg-slate-50 border-slate-300 hover:bg-slate-100'}`}>
-                + {isDev ? 'Establish Universal Community' : 'Launch New Community'}
+              <button onClick={() => setIsAdding(true)} className={`w-full py-4 px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-dashed flex items-center justify-center gap-2 transition-all ${isDark ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 hover:border-emerald-500' : 'bg-slate-50 border-slate-300 hover:bg-slate-100 hover:border-indigo-400 text-slate-500 hover:text-indigo-600'}`}>
+                + {isDev ? 'Establish Sector' : 'Launch New Hub'}
               </button>
             ) : (
-              <div className={`p-5 rounded-[2rem] border shadow-xl ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+              <div className={`p-5 rounded-[2rem] border shadow-xl transition-colors ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
                 <input 
                   autoFocus type="text" placeholder="Community Name" 
                   value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-2xl text-sm mb-4 outline-none border font-bold ${isDark ? 'bg-slate-900 text-white border-slate-700' : 'bg-white border-slate-300'}`}
+                  className={`w-full px-4 py-3 rounded-2xl text-sm mb-4 outline-none border font-bold transition-colors ${isDark ? 'bg-slate-900 text-white border-slate-700' : 'bg-slate-50 text-slate-900 border-slate-200'}`}
                 />
                 <div className="flex gap-2">
                   <button onClick={() => addFolder(newFolderName)} className={`flex-1 text-white text-[10px] font-black py-3 rounded-xl ${isDev ? 'bg-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-amber-500 shadow-lg shadow-amber-500/20'}`}>Add</button>
-                  <button onClick={() => setIsAdding(false)} className="flex-1 bg-slate-200 dark:bg-slate-700 text-[10px] font-black py-3 rounded-xl">Cancel</button>
+                  <button onClick={() => setIsAdding(false)} className={`flex-1 text-[10px] font-black py-3 rounded-xl transition-colors ${isDark ? 'bg-slate-700 text-white' : 'bg-slate-200 text-slate-600'}`}>Cancel</button>
                 </div>
               </div>
             )}
@@ -217,15 +217,15 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
         )}
       </div>
 
-      <div className={`p-6 border-t ${isDark ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50 border-slate-100'} space-y-4 hidden lg:block`}>
+      <div className={`p-6 border-t transition-colors duration-500 ${isDark ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50 border-slate-100'} space-y-4 hidden lg:block`}>
         <div className="flex items-center gap-4">
           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-xl ${isDev ? 'bg-gradient-to-tr from-emerald-500 to-teal-600 shadow-emerald-500/20' : isAdmin ? 'bg-gradient-to-tr from-amber-500 to-orange-600 shadow-amber-500/20' : 'bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-indigo-500/20'}`}>
             {currentUser?.name.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-black truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{currentUser?.name}</p>
+            <p className={`text-sm font-black truncate transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>{currentUser?.name}</p>
             <p className={`text-[10px] font-bold uppercase tracking-widest ${isDev ? 'text-emerald-400' : isAdmin ? 'text-amber-500' : 'text-slate-500'}`}>
-              {isDev ? 'System Architect' : isAdmin ? 'Master Admin' : 'Active User'}
+              {isDev ? 'Architect' : isAdmin ? 'Sector Admin' : 'Operative'}
             </p>
           </div>
         </div>
