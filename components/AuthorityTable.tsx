@@ -5,7 +5,7 @@ import { Party, User, Folder, Card } from '../types';
 import { useApp } from '../App';
 
 const AuthorityTable: React.FC = () => {
-  const { showToast, logout } = useApp();
+  const { showToast, logout, theme } = useApp();
   const [data, setData] = useState<{
     parties: Party[];
     users: User[];
@@ -15,6 +15,7 @@ const AuthorityTable: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [isPurging, setIsPurging] = useState(false);
+  const isDark = theme === 'dark';
 
   const refreshData = useCallback(async () => {
     setLoading(true);
@@ -121,7 +122,7 @@ const AuthorityTable: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-[9px] font-black uppercase tracking-widest mb-2">
             Architect Access: Command Level
           </div>
-          <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tighter uppercase">Authority Console</h2>
+          <h2 className={`text-4xl lg:text-5xl font-black tracking-tighter uppercase transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>Authority Console</h2>
           <p className="text-slate-500 font-bold text-xs uppercase tracking-[0.2em]">Global Management of Communities & Nodes</p>
         </div>
         
@@ -129,7 +130,7 @@ const AuthorityTable: React.FC = () => {
           <button 
             disabled={loading || isPurging}
             onClick={refreshData}
-            className="bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all border border-slate-700"
+            className={`px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all border ${isDark ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm'}`}
           >
             <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             {loading ? 'Syncing...' : 'Sync Data'}
@@ -145,15 +146,14 @@ const AuthorityTable: React.FC = () => {
         </div>
       </header>
 
-      {/* Resource Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { label: 'Communities', value: data?.parties.length || 0, color: 'text-emerald-400' },
-          { label: 'Total Members', value: data?.users.length || 0, color: 'text-indigo-400' },
-          { label: 'Folders', value: data?.folders.length || 0, color: 'text-amber-400' },
-          { label: 'Profile Cards', value: data?.cards.length || 0, color: 'text-violet-400' }
+          { label: 'Communities', value: data?.parties.length || 0, color: 'text-emerald-500' },
+          { label: 'Total Members', value: data?.users.length || 0, color: 'text-indigo-600 dark:text-indigo-400' },
+          { label: 'Folders', value: data?.folders.length || 0, color: 'text-amber-500' },
+          { label: 'Profile Cards', value: data?.cards.length || 0, color: 'text-violet-600 dark:text-violet-400' }
         ].map((stat, i) => (
-          <div key={i} className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+          <div key={i} className={`rounded-3xl p-6 border transition-all ${isDark ? 'bg-slate-900 border-slate-800 shadow-xl' : 'bg-white border-slate-100 shadow-sm'}`}>
             <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{stat.label}</div>
             <div className={`text-2xl sm:text-3xl font-black ${stat.color}`}>{stat.value}</div>
           </div>
@@ -161,34 +161,33 @@ const AuthorityTable: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-12">
-        {/* Parties Table */}
-        <section className="bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col min-h-[400px]">
-          <div className="p-8 bg-emerald-500/10 border-b border-slate-800 flex items-center justify-between">
+        <section className={`rounded-[2.5rem] overflow-hidden border flex flex-col min-h-[400px] transition-all ${isDark ? 'bg-slate-900 border-slate-800 shadow-2xl' : 'bg-white border-slate-100 shadow-sm'}`}>
+          <div className={`p-8 border-b flex items-center justify-between ${isDark ? 'bg-emerald-500/10 border-slate-800' : 'bg-emerald-50/50 border-slate-100'}`}>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
               </div>
-              <h3 className="text-white font-black uppercase tracking-widest text-sm">Active Communities</h3>
+              <h3 className={`font-black uppercase tracking-widest text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>Active Communities</h3>
             </div>
             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">Available IDs: {89 - (data?.parties.length || 0)}</span>
           </div>
           <div className="overflow-x-auto custom-scrollbar flex-1">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="sticky top-0 bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800">
+              <thead className={`sticky top-0 text-slate-500 uppercase font-black border-b transition-colors ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
                 <tr>
                   <th className="p-6">Code</th>
                   <th className="p-6">Name</th>
                   <th className="p-6 text-right">Delete</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/50">
+              <tbody className={`divide-y transition-colors ${isDark ? 'divide-slate-800/50' : 'divide-slate-100'}`}>
                 {data?.parties.map(p => (
-                  <tr key={p.id} className="group hover:bg-white/5 transition-all">
+                  <tr key={p.id} className={`group transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
                     <td className="p-6">
                       <span className="font-mono text-emerald-500 text-lg font-black bg-emerald-500/5 px-3 py-1 rounded-lg border border-emerald-500/10">{p.id}</span>
                     </td>
                     <td className="p-6">
-                      <div className="font-black text-white text-base truncate max-w-[150px]">{p.name}</div>
+                      <div className={`font-black text-base truncate max-w-[150px] transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>{p.name}</div>
                       <div className="text-[9px] text-slate-500 uppercase font-bold mt-1">Resource Managed</div>
                     </td>
                     <td className="p-6 text-right">
@@ -201,7 +200,7 @@ const AuthorityTable: React.FC = () => {
                           {processingId === p.id ? 'Terminating...' : 'Terminate'}
                         </button>
                       ) : (
-                        <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest px-4">Protected</span>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Protected</span>
                       )}
                     </td>
                   </tr>
@@ -211,30 +210,29 @@ const AuthorityTable: React.FC = () => {
           </div>
         </section>
 
-        {/* Users Table */}
-        <section className="bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col min-h-[400px]">
-          <div className="p-8 bg-indigo-500/10 border-b border-slate-800">
+        <section className={`rounded-[2.5rem] overflow-hidden border flex flex-col min-h-[400px] transition-all ${isDark ? 'bg-slate-900 border-slate-800 shadow-2xl' : 'bg-white border-slate-100 shadow-sm'}`}>
+          <div className={`p-8 border-b transition-colors ${isDark ? 'bg-indigo-500/10 border-slate-800' : 'bg-indigo-50/50 border-slate-100'}`}>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               </div>
-              <h3 className="text-white font-black uppercase tracking-widest text-sm">Registered Members</h3>
+              <h3 className={`font-black uppercase tracking-widest text-sm transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>Registered Members</h3>
             </div>
           </div>
           <div className="overflow-x-auto custom-scrollbar flex-1">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="sticky top-0 bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800">
+              <thead className={`sticky top-0 text-slate-500 uppercase font-black border-b transition-colors ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
                 <tr>
                   <th className="p-6">Member</th>
                   <th className="p-6">Role</th>
                   <th className="p-6 text-right">Expel</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/50">
+              <tbody className={`divide-y transition-colors ${isDark ? 'divide-slate-800/50' : 'divide-slate-100'}`}>
                 {data?.users.map(u => (
-                  <tr key={u.id} className="group hover:bg-white/5 transition-all">
+                  <tr key={u.id} className={`group transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
                     <td className="p-6">
-                      <div className="font-black text-white text-base">{u.name}</div>
+                      <div className={`font-black text-base transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>{u.name}</div>
                       <div className="text-[9px] text-slate-500 truncate max-w-[120px] font-mono">{u.partyId === SYSTEM_PARTY_ID ? 'SYSTEM' : `HUB ${u.partyId}`}</div>
                     </td>
                     <td className="p-6">
@@ -255,7 +253,7 @@ const AuthorityTable: React.FC = () => {
                           {processingId === u.id ? 'Expelling...' : 'Expel'}
                         </button>
                       ) : (
-                        <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest px-4">Protected</span>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Protected</span>
                       )}
                     </td>
                   </tr>

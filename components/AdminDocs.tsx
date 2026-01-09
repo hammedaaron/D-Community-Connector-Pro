@@ -14,7 +14,6 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
     <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 sm:p-6 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
       <div className={`w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-[3rem] border shadow-2xl transition-all animate-in zoom-in-95 duration-500 ${isDark ? 'bg-slate-900 border-indigo-500/30 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
         
-        {/* Header */}
         <header className={`sticky top-0 z-10 p-8 flex items-center justify-between border-b backdrop-blur-md ${isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-100'}`}>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg">
@@ -25,14 +24,13 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Mastering Community Infrastructure</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+          <button onClick={onClose} className={`p-3 rounded-2xl transition-all ${isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </header>
 
         <div className="p-8 lg:p-12 space-y-16">
           
-          {/* Section 1: Setup & Passwords */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="inline-flex px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 text-[10px] font-black uppercase tracking-widest">Step 01: Core Setup</div>
@@ -40,7 +38,7 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
               <p className="text-slate-500 font-medium leading-relaxed">
                 To prevent community overlap, every Admin must follow a specific security pattern. This code acts as your community's unique "Seed".
               </p>
-              <div className={`p-6 rounded-3xl border-2 border-dashed ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+              <div className={`p-6 rounded-3xl border-2 border-dashed ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200 shadow-sm'}`}>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="text-2xl">🔑</div>
                   <code className="text-indigo-500 font-black text-xl tracking-widest">Hamstar[XX][Y]</code>
@@ -55,8 +53,8 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
             <div className="relative">
               <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full"></div>
               <svg className="relative w-full h-auto" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="50" y="50" width="300" height="200" rx="40" fill={isDark ? "#1e293b" : "#f1f5f9"} stroke="#6366f1" strokeWidth="4" />
-                <rect x="80" y="90" width="240" height="40" rx="12" fill={isDark ? "#0f172a" : "#fff"} stroke="#e2e8f0" strokeWidth="2" />
+                <rect x="50" y="50" width="300" height="200" rx="40" fill={isDark ? "#1e293b" : "#f8fafc"} stroke="#6366f1" strokeWidth="4" />
+                <rect x="80" y="90" width="240" height="40" rx="12" fill={isDark ? "#0f172a" : "#fff"} stroke={isDark ? "#e2e8f0" : "#cbd5e1"} strokeWidth="2" />
                 <circle cx="100" cy="110" r="8" fill="#6366f1" />
                 <rect x="120" y="105" width="180" height="10" rx="5" fill="#6366f1" opacity="0.2" />
                 <rect x="80" y="150" width="240" height="60" rx="12" fill="#6366f1" />
@@ -65,7 +63,6 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
             </div>
           </section>
 
-          {/* Section 2: Invites */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="lg:order-2 space-y-6">
               <div className="inline-flex px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest">Step 02: Expansion</div>
@@ -73,7 +70,7 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
               <p className="text-slate-500 font-medium leading-relaxed">
                 Once your hub is live, access the sidebar. The "INVITE" button generates a unique, deep-linking URL that bypasses the manual search for your community.
               </p>
-              <div className={`p-4 rounded-2xl flex items-center gap-4 ${isDark ? 'bg-slate-800' : 'bg-indigo-50'}`}>
+              <div className={`p-4 rounded-2xl flex items-center gap-4 ${isDark ? 'bg-slate-800' : 'bg-indigo-50 border border-indigo-100'}`}>
                 <div className="p-3 bg-white rounded-xl shadow-sm">🔗</div>
                 <div className="flex-1 overflow-hidden">
                   <p className="text-[10px] font-black text-indigo-500 truncate">connectorpro.io/#/party/12/Biz-Hub</p>
@@ -81,7 +78,7 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
               </div>
             </div>
             <div className="lg:order-1">
-              <div className={`p-8 rounded-[3rem] border shadow-xl ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+              <div className={`p-8 rounded-[3rem] border shadow-xl ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-8 h-8 rounded-lg bg-indigo-600"></div>
                   <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
@@ -97,7 +94,6 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
             </div>
           </section>
 
-          {/* Section 3: Capabilities */}
           <section className="space-y-8">
             <div className="text-center space-y-3">
               <h3 className="text-3xl font-black tracking-tight">Admin Capabilities</h3>
@@ -109,7 +105,7 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
                 { icon: "📌", title: "Pinned Intel", desc: "Publish 'Instruction Boxes' that stay fixed at the top of every folder for rules." },
                 { icon: "🛡️", title: "Profile Management", desc: "Admins have master-edit rights over any profile in their specific community." }
               ].map((cap, i) => (
-                <div key={i} className={`p-8 rounded-[2.5rem] border transition-all hover:scale-105 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100 shadow-lg'}`}>
+                <div key={i} className={`p-8 rounded-[2.5rem] border transition-all hover:scale-105 shadow-sm ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100 hover:shadow-xl'}`}>
                   <div className="text-4xl mb-6">{cap.icon}</div>
                   <h4 className="text-xl font-black mb-3">{cap.title}</h4>
                   <p className="text-sm text-slate-500 font-medium leading-relaxed">{cap.desc}</p>
@@ -118,7 +114,6 @@ const AdminDocs: React.FC<AdminDocsProps> = ({ onClose }) => {
             </div>
           </section>
 
-          {/* Footer CTA */}
           <footer className="pt-8 text-center border-t border-slate-100 dark:border-slate-800">
              <button 
               onClick={onClose}

@@ -107,15 +107,15 @@ const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
 
     return parts.map((line, i) => {
       if (line.trim().startsWith('## ')) {
-        return <h2 key={i} className="text-[#00ff9d] text-2xl font-black mb-4 mt-6 first:mt-0 uppercase tracking-tighter">{line.replace('## ', '').trim()}</h2>;
+        return <h2 key={i} className={`text-2xl font-black mb-4 mt-6 first:mt-0 uppercase tracking-tighter ${isDark ? 'text-[#00ff9d]' : 'text-emerald-600'}`}>{line.replace('## ', '').trim()}</h2>;
       }
       
       const segments = line.split(boldRegex);
       const formatted = segments.map((segment, index) => {
-        if (index % 2 === 1) return <b key={index} className="text-[#2563eb] dark:text-[#60a5fa] font-black">{segment}</b>;
+        if (index % 2 === 1) return <b key={index} className={`font-black ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{segment}</b>;
         return segment;
       });
-      return <p key={i} className="text-sm leading-relaxed mb-2 opacity-90 font-medium">{formatted}</p>;
+      return <p key={i} className={`text-sm leading-relaxed mb-2 font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{formatted}</p>;
     });
   };
 
@@ -126,7 +126,7 @@ const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
       ref={canvasRef}
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
-      className={`relative w-full h-[3000px] rounded-[3rem] border-4 border-dashed transition-all duration-500 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}
+      className={`relative w-full h-[3000px] rounded-[3rem] border-4 border-dashed transition-all duration-500 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'}`}
     >
       <div className="sticky top-6 left-6 z-50 flex flex-col sm:flex-row gap-4 pointer-events-none">
         <button 
@@ -143,7 +143,7 @@ const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           Reset Everything
         </button>
-        <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700 px-6 py-4 rounded-2xl text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em] flex items-center shadow-2xl border-l-4 border-l-emerald-500">
+        <div className={`backdrop-blur-xl border px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center shadow-2xl border-l-4 border-l-emerald-500 transition-colors ${isDark ? 'bg-slate-900/90 border-slate-700 text-emerald-400' : 'bg-white/90 border-slate-100 text-emerald-600'}`}>
           Architect Console: Design Global Community Workflows
         </div>
       </div>
@@ -181,7 +181,7 @@ const DevWorkflow: React.FC<{ folderId: string | null }> = ({ folderId }) => {
           </div>
           <div className="relative">
             <textarea
-              className={`w-full bg-transparent border-none outline-none font-mono text-[10px] opacity-10 focus:opacity-100 hover:opacity-100 transition-opacity p-4 rounded-3xl resize-none ${isDark ? 'text-white bg-slate-800' : 'text-slate-900 bg-slate-100'}`}
+              className={`w-full bg-transparent border-none outline-none font-mono text-[10px] opacity-10 focus:opacity-100 hover:opacity-100 transition-opacity p-4 rounded-3xl resize-none ${isDark ? 'text-white bg-slate-800' : 'text-slate-900 bg-slate-200'}`}
               value={box.content}
               onChange={(e) => updateBoxContent(box.id, e.target.value)}
               placeholder="System Markdown..."

@@ -127,7 +127,6 @@ const App: React.FC = () => {
         else if (status === 'CLOSED') setSocketStatus('disconnected');
       });
 
-    // ADAPTIVE POLLING: Pause when user is not looking at the app
     const pollInterval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         throttledSync();
@@ -211,12 +210,21 @@ const App: React.FC = () => {
   };
 
   const logout = () => {
+    // 1. Clear session
     saveSession(null);
+    // 2. Reset hash to return to landing
+    window.location.hash = '';
+    // 3. Clear all state
     setCurrentUser(null);
     setActiveParty(null);
     setFolders([]);
     setCards([]);
-    window.location.hash = '';
+    setFollows([]);
+    setNotifications([]);
+    setInstructions([]);
+    setSelectedFolderId(null);
+    // 4. Reset theme (Gate will override to Dark)
+    setTheme('light');
   };
 
   const contextValue: AppContextType = {

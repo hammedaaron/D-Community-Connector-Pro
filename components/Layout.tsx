@@ -13,7 +13,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
   const { 
-    currentUser, theme, setTheme, isPoweredUp, 
+    currentUser, theme, setTheme, isPoweredUp, logout,
     selectedFolderId, folders, searchQuery, setSearchQuery, notifications,
     activeParty, isDev, cards, isWorkflowMode, setIsWorkflowMode, socketStatus
   } = useApp();
@@ -60,12 +60,12 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
           <div className="flex items-center gap-3 lg:gap-8 flex-1">
             <button 
               onClick={() => setActiveTab('folders')}
-              className="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500"
+              className={`lg:hidden p-2 rounded-xl transition-colors ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16m-7 6h7" /></svg>
             </button>
             
-            <h1 className="text-lg lg:text-2xl font-black tracking-tighter truncate flex items-center gap-2">
+            <h1 className={`text-lg lg:text-2xl font-black tracking-tighter truncate flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
               <span className="hidden sm:inline">{currentFolderName}</span>
               <span className="sm:hidden">{activeTab === 'community' ? (currentFolder?.name || 'Feed') : activeTab === 'notifications' ? 'Activity' : 'Profile'}</span>
               <div className="relative flex h-2 w-2" title={`Realtime: ${socketStatus}`}>
@@ -84,14 +84,13 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
           </div>
 
           <div className="flex items-center gap-2 lg:gap-3">
-            {/* Mobile Search Toggle */}
-            <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="sm:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500">
+            <button onClick={() => setIsSearchOpen(!isSearchOpen)} className={`sm:hidden p-2.5 rounded-xl transition-colors ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </button>
 
             {isDev && (
-              <button onClick={() => setIsWorkflowMode(!isWorkflowMode)} className={`p-2.5 rounded-xl transition-all border-2 ${isWorkflowMode ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg' : 'bg-slate-800 border-slate-700 text-slate-400'}`} title="Design Canvas">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1-0 01-1-1v-6z" /></svg>
+              <button onClick={() => setIsWorkflowMode(!isWorkflowMode)} className={`p-2.5 rounded-xl transition-all border-2 ${isWorkflowMode ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg' : isDark ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-500'}`} title="Design Canvas">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>
               </button>
             )}
 
@@ -99,7 +98,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
               {isDark ? <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.071 16.071l.707.707M7.929 7.929l.707-.707M12 8a4 4 0 110 8 4 4 0 010-8z" /></svg> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>}
             </button>
 
-            <button onClick={() => setIsNotifOpen(true)} className={`hidden lg:flex p-2.5 rounded-xl transition-all relative ${isNotifOpen ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+            <button onClick={() => setIsNotifOpen(true)} className={`hidden lg:flex p-2.5 rounded-xl transition-all relative ${isNotifOpen ? 'bg-indigo-600 text-white' : isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               {unreadNotifications > 0 && <span className="absolute -top-1 -right-1 flex h-5 w-5 pointer-events-none"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-5 w-5 bg-red-500 border-2 border-white dark:border-slate-900 text-[9px] font-black items-center justify-center text-white">{unreadNotifications}</span></span>}
             </button>
@@ -111,10 +110,9 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
           </div>
         </header>
 
-        {/* Mobile Search Overlay */}
         {isSearchOpen && (
-          <div className="sm:hidden px-4 py-3 bg-white dark:bg-slate-900 border-b dark:border-slate-800 animate-in slide-in-from-top-4 duration-200">
-             <input autoFocus type="text" placeholder="Search profiles..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={`w-full rounded-xl px-4 py-3 text-sm outline-none border ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-100 border-slate-200 text-slate-900'}`} />
+          <div className={`sm:hidden px-4 py-3 border-b animate-in slide-in-from-top-4 duration-200 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+             <input autoFocus type="text" placeholder="Search profiles..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={`w-full rounded-xl px-4 py-3 text-sm outline-none border transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'}`} />
           </div>
         )}
 
@@ -122,28 +120,27 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
           {children}
         </div>
 
-        {/* Scroll to Top FAB */}
         <button onClick={scrollToTop} className={`fixed bottom-24 lg:bottom-10 right-6 lg:right-10 p-4 rounded-full shadow-2xl transition-all duration-500 z-[100] border-2 group ${showScrollTop ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-50 pointer-events-none'} ${isDev ? 'bg-emerald-500 border-emerald-400 text-white shadow-emerald-500/20' : 'bg-indigo-600 border-indigo-500 text-white shadow-indigo-500/20'}`} aria-label="Scroll to top">
           <svg className="w-6 h-6 transform group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
         </button>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t dark:border-slate-800 px-6 py-3 flex items-center justify-between">
-          <button onClick={() => setActiveTab('folders')} className={`flex flex-col items-center gap-1 ${activeTab === 'folders' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+        <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl border-t px-6 py-3 flex items-center justify-between transition-colors ${isDark ? 'bg-slate-900/95 border-slate-800' : 'bg-white/95 border-slate-200'}`}>
+          <button onClick={() => setActiveTab('folders')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'folders' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
             <span className="text-[9px] font-black uppercase tracking-widest">Hubs</span>
           </button>
-          <button onClick={() => setActiveTab('community')} className={`flex flex-col items-center gap-1 ${activeTab === 'community' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+          <button onClick={() => setActiveTab('community')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'community' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
             <span className="text-[9px] font-black uppercase tracking-widest">Feed</span>
           </button>
-          <button onClick={() => setIsNotifOpen(true)} className={`flex flex-col items-center gap-1 relative ${isNotifOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+          <button onClick={() => setIsNotifOpen(true)} className={`flex flex-col items-center gap-1 relative transition-colors ${isNotifOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             <span className="text-[9px] font-black uppercase tracking-widest">Alerts</span>
             {unreadNotifications > 0 && <span className="absolute top-0 -right-1 flex h-4 w-4"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border border-white dark:border-slate-900 text-[8px] font-black items-center justify-center text-white">{unreadNotifications}</span></span>}
           </button>
-          <button onClick={() => setActiveTab('profile')} className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
-            <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] border-2 ${activeTab === 'profile' ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-slate-200 dark:bg-slate-800 border-transparent text-slate-500'}`}>
+          <button onClick={() => setActiveTab('profile')} className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'profile' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+            <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] border-2 transition-all ${activeTab === 'profile' ? 'bg-indigo-600 border-indigo-400 text-white' : isDark ? 'bg-slate-800 border-transparent text-slate-500' : 'bg-slate-200 border-transparent text-slate-500'}`}>
               {currentUser?.name.charAt(0)}
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest">Me</span>
@@ -151,12 +148,12 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
         </nav>
       </main>
 
-      {/* Profile Sidebar (Full Screen on Mobile) */}
+      {/* Profile Sidebar (Mobile Only) */}
       {activeTab === 'profile' && (
-        <div className="lg:hidden fixed inset-0 z-[70] bg-white dark:bg-slate-950 p-8 animate-in slide-in-from-right duration-300">
+        <div className={`lg:hidden fixed inset-0 z-[70] p-8 animate-in slide-in-from-right duration-300 transition-colors ${isDark ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}`}>
            <header className="flex items-center justify-between mb-12">
-              <h2 className="text-3xl font-black tracking-tighter uppercase">Settings</h2>
-              <button onClick={() => setActiveTab('community')} className="p-3 bg-slate-100 dark:bg-slate-900 rounded-2xl">
+              <h2 className="text-3xl font-black tracking-tighter uppercase">Protocol Settings</h2>
+              <button onClick={() => setActiveTab('community')} className={`p-3 rounded-2xl transition-colors ${isDark ? 'bg-slate-900 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
            </header>
@@ -166,26 +163,36 @@ const Layout: React.FC<LayoutProps> = ({ children, onOpenCreateProfile }) => {
                  <div className="w-16 h-16 rounded-3xl bg-white/20 flex items-center justify-center text-3xl font-black">
                     {currentUser?.name.charAt(0)}
                  </div>
-                 <div>
-                    <h3 className="text-xl font-black">{currentUser?.name}</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">{currentUser?.role} Clearance</p>
+                 <div className="min-w-0 flex-1">
+                    <h3 className="text-xl font-black truncate">{currentUser?.name}</h3>
+                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">{currentUser?.role} Member Profile</p>
                  </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
-                 <button onClick={() => {setTheme(isDark ? 'light' : 'dark'); setActiveTab('community');}} className="flex items-center justify-between p-6 bg-slate-100 dark:bg-slate-900 rounded-[2rem] font-black text-sm uppercase tracking-widest">
-                    <span>Appearance</span>
-                    <span className="text-indigo-500">{isDark ? 'Dark Mode' : 'Light Mode'}</span>
+                 <button 
+                  onClick={() => { setTheme(isDark ? 'light' : 'dark'); setActiveTab('community'); }} 
+                  className={`flex items-center justify-between p-7 rounded-[2rem] font-black text-sm uppercase tracking-widest transition-all border ${isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-slate-100 border-slate-200 text-slate-900'}`}
+                 >
+                    <span>UI Theme Mode</span>
+                    <span className="text-indigo-500">{isDark ? 'Dark (Active)' : 'Light (Active)'}</span>
                  </button>
-                 <button onClick={() => {useApp().logout();}} className="flex items-center justify-center p-6 bg-red-500/10 text-red-500 border border-red-500/20 rounded-[2rem] font-black text-sm uppercase tracking-widest">
+                 
+                 <button 
+                  onClick={() => { logout(); }} 
+                  className="flex items-center justify-center p-7 bg-red-500/10 text-red-500 border border-red-500/20 rounded-[2rem] font-black text-sm uppercase tracking-widest transform transition-all active:scale-95 active:bg-red-500 active:text-white"
+                 >
                     Sign Out Protocol
                  </button>
               </div>
            </div>
+
+           <div className="absolute bottom-12 left-8 right-8 text-center opacity-30">
+              <p className="text-[10px] font-black uppercase tracking-[0.4em]">Verifiable Community Standard v3.2</p>
+           </div>
         </div>
       )}
 
-      {/* Notification Drawer (Responsive Overlay) */}
       <div className={`fixed inset-0 z-[100] transition-opacity duration-300 ${isNotifOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsNotifOpen(false)}>
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
         <div className={`absolute top-0 right-0 h-full w-full max-w-sm bg-white dark:bg-slate-900 shadow-2xl transition-transform duration-500 ease-out ${isNotifOpen ? 'translate-x-0' : 'translate-x-full'}`} onClick={(e) => e.stopPropagation()}>
