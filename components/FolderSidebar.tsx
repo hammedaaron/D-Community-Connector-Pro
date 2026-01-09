@@ -22,17 +22,12 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
 
   const isDark = theme === 'dark';
 
-  // FIX: Priority sorting - System folders first, then alphabetical
   const sortedFolders = useMemo(() => {
     return [...folders].sort((a, b) => {
       const aIsSystem = a.partyId === SYSTEM_PARTY_ID;
       const bIsSystem = b.partyId === SYSTEM_PARTY_ID;
-      
-      // System folders always go to the top
       if (aIsSystem && !bIsSystem) return -1;
       if (!aIsSystem && bIsSystem) return 1;
-      
-      // Otherwise sort alphabetically
       return a.name.localeCompare(b.name);
     });
   }, [folders]);
@@ -110,9 +105,9 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
   };
 
   return (
-    <aside className={`w-full lg:w-72 flex flex-col h-full border-r transition-colors duration-500 ${isDark ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-slate-200 text-slate-600 shadow-xl z-20'}`}>
-      <div className="p-8 pb-4">
-        <h2 className={`font-black text-2xl tracking-tighter flex items-center gap-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+    <aside className={`w-full lg:w-72 flex flex-col h-full border-r transition-colors duration-500 animate-in slide-in-from-left duration-300 z-[100] ${isDark ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-slate-200 text-slate-600 shadow-xl'}`}>
+      <div className="p-6 lg:p-8 pb-4 flex items-center justify-between">
+        <h2 className={`font-black text-xl lg:text-2xl tracking-tighter flex items-center gap-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg ${isDev ? 'bg-emerald-500 shadow-emerald-500/20' : isAdmin ? 'bg-amber-500 shadow-amber-500/20' : 'bg-indigo-600 shadow-indigo-500/20'}`}>
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
@@ -120,6 +115,9 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
           </div>
           {isDev ? 'Architect' : (activeParty?.name || 'Hub')}
         </h2>
+        <button onClick={onSelect} className="lg:hidden p-2.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar">
@@ -127,7 +125,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
           <div className="mb-8 px-2">
             <button
               onClick={() => handleSelect('authority-table')}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all ${
+              className={`w-full flex items-center gap-4 px-4 py-3 lg:py-4 rounded-2xl transition-all ${
                 selectedFolderId === 'authority-table'
                   ? 'bg-emerald-500 text-white shadow-lg'
                   : 'hover:bg-slate-800 hover:text-white font-semibold'
@@ -149,7 +147,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
           )}
         </div>
         
-        <nav className="space-y-1.5">
+        <nav className="space-y-2">
           {sortedFolders.map(folder => (
             <div key={folder.id} className="group flex items-center gap-1">
               {editingFolderId === folder.id ? (
@@ -169,10 +167,10 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
                 <>
                   <button
                     onClick={() => handleSelect(folder.id)}
-                    className={`flex-1 flex items-center gap-4 px-4 py-3 rounded-2xl transition-all ${
+                    className={`flex-1 flex items-center gap-4 px-4 py-4 rounded-2xl transition-all ${
                       selectedFolderId === folder.id 
                         ? (isDev ? 'bg-emerald-600' : isAdmin ? 'bg-amber-500' : 'bg-indigo-600') + ' text-white shadow-lg' 
-                        : `hover:bg-slate-100 ${isDark ? 'hover:bg-slate-800 hover:text-white' : ''} font-semibold`
+                        : `hover:bg-slate-100 ${isDark ? 'hover:bg-slate-800 hover:text-white' : ''} font-bold text-sm`
                     }`}
                   >
                     <span className="text-xl">
@@ -181,7 +179,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
                     <span className="truncate">{folder.name}</span>
                   </button>
                   {(isAdmin || isDev) && (
-                    <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-all">
+                    <div className="flex flex-col opacity-0 lg:group-hover:opacity-100 transition-all">
                       <button onClick={() => { setEditingFolderId(folder.id); setEditingFolderName(folder.name); }} className="p-2 text-slate-400 hover:text-indigo-500">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                       </button>
@@ -219,7 +217,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({ onSelect }) => {
         )}
       </div>
 
-      <div className={`p-6 border-t ${isDark ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50 border-slate-100'} space-y-4`}>
+      <div className={`p-6 border-t ${isDark ? 'bg-slate-950/50 border-slate-800' : 'bg-slate-50 border-slate-100'} space-y-4 hidden lg:block`}>
         <div className="flex items-center gap-4">
           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-xl ${isDev ? 'bg-gradient-to-tr from-emerald-500 to-teal-600 shadow-emerald-500/20' : isAdmin ? 'bg-gradient-to-tr from-amber-500 to-orange-600 shadow-amber-500/20' : 'bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-indigo-500/20'}`}>
             {currentUser?.name.charAt(0)}
